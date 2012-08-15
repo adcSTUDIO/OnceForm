@@ -226,8 +226,11 @@ class OnceForm
 	 * @return boolean Whether or not the data is valid by the 
 	 * rules of the OnceForm.
 	 */
-	public function validate( $data )
+	public function validate( $data = NULL )
 	{
+		if ( is_null( $data ) )
+			$data = $this->data;
+		
 		$form = $this->form;
 		
 		if (
