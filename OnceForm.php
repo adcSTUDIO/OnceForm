@@ -233,14 +233,18 @@ class OnceForm
 		
 		$form = $this->form;
 		
-		if (
-			$this->validate_inputs( $form('input'), $data ) &&
-			$this->validate_selects( $form('select'), $data ) &&
-			$this->validate_textareas( $form('textarea'), $data )
-		)
-			return true;
-		else
-			return false;
+		$valid = true;
+		
+		if ( !$this->validate_inputs( $form('input'), $data ) )
+			$valid = false;
+		
+		if ( !$this->validate_selects( $form('select'), $data ) )
+			$valid = false;
+		
+		if ( !$this->validate_textareas( $form('textarea'), $data ) )
+			$valid = false;
+		
+		return $valid;	
 	}
 	
 	private function validate_inputs( $inputs, $data )
