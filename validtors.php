@@ -171,7 +171,7 @@ class PatternValidator extends InputValidator
 		parent::validate();
 		
 		if ( !empty($this->pattern) &&
-				!preg_match( $This->$pattern, $this->value ) )
+				!preg_match( $this->$pattern, $this->value ) )
 			$this->errors[] = 'not a valid value';
 		
 		return $this->isValid = empty( $this->errors );
@@ -212,30 +212,58 @@ class EmailValidator extends PatternValidator
 	}
 }
 
+/**
+ * Validates Select fields.
+ * @param stdObject|array The properties of the select box.
+ * @param array The array of options to be checked. Can be array of 
+ * arrays, stdObjects or a Ganon Node. must have keys: value, text.
+ * The selected option should contain the key: selected.
+ */
 class SelectValidator extends InputValidator
 {
-	private $options;
-	
-	// $props->value should contain the value of the selected option
-	public function __construct( $props = NULL, $options = array() )
+	public function __construct( $props = NULL, $options = NULL )
 	{
 		parent::__construct( $props );
 		
-		if ( is_array( $props ) )
-			$props = (object) $props;
+		if ( is_null( $options ) && is_callable( $props->select ) )
+			$options = $props->select( 'option' );
 		
-		if ( !empty( $options ) )
-			$this->options = $options;		
-	}
-	
-	public function validate()
-	{
-		parent::validate();
-		
-		if ( true )
+		if ( !is_null( $options ) )
 		{
-			
+			// get the value from the options list
+			foreach( $options as $option )
+			{
+				// cast $option if array
+				if ( is_array( $option ) )
+					$option = (object) $option;
+				
+				// find the selection option and get the value
+				if ( ( is_callable( $option->hasAttribute ) && 
+							$option->hasAttribute( 'selected' ) )
+					 || isset( $option->selected ) )
+				{
+					// get the value - it's either the value prop, or the text/innertext.
+					if ( isset( $option->value ) )
+						$this->value = $option->value;
+					
+					if ( is_null( $this->value ) )
+					{
+						// Allow the use of a ganon node list here - the default in OnceForm
+						// `is_callable` didn't work here - some magic ganon thing I'm sure
+						//try {
+							$this->value = $option->getInnerText();
+						/*}
+						catch( e:Exception) {
+							// :UNTESTED: The non-ganon path is not tested.
+							$this->value = $option->text;
+						}*/
+					}
+					break;
+				}
+			}
 		}
 	}
+	
+	// parent takes care of validation
 	
 }

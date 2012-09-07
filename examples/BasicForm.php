@@ -28,11 +28,11 @@ if ( $form1->isRequest )
 {
 	if ( $form1->isValid )
 	{
-		// Do something with the data
+		// Do something with the data, or perform more complicated validation
 		$form1->data;
 	}
 	else {
-		// probably don't have to do anything!!
+		// display an error somewhere
 	}
 }
 ?>
@@ -76,11 +76,17 @@ submit invalid data to the server to demo the OnceForm.)</p></td>
 </p>
 <p>
 	<label for="selectTest">Select Something</label>
-	<select name="selectTest" id="selectTest">
+	<select name="selectTest" id="selectTest" required>
+		<option value="">Select Something</option>
 		<option value="1">One</option>
-		<option value="2">Two</option>
-		<option value="3">Three</option>
+		<option>Two</option>
+		<option value="3" selected>Three</option>
+		<option value="4">Four</option>
 	</select>
+</p>
+<p>
+	<label for="textTest">Enter some text</label><br>
+	<textarea id="textTest" name="textTest"></textarea>
 </p>
 <p>
 	<input type="submit" value="Go!">
@@ -113,10 +119,16 @@ submit invalid data to the server to demo the OnceForm.)</p></td>
 <p>
 	<label for="selectTest">Select Something</label>
 	<select name="selectTest" id="selectTest">
+		<option value="">Select Something</option>
 		<option value="1">One</option>
-		<option value="2">Two</option>
-		<option value="3">Three</option>
+		<option>Two</option>
+		<option value="3" selected>Three</option>
+		<option value="4">Four</option>
 	</select>
+</p>
+<p>
+	<label for="textTest">Enter some text</label><br>
+	<textarea id="textTest" name="textTest"></textarea>
 </p>
 <p>
 	<input type="submit" value="Go!">
@@ -135,6 +147,8 @@ isValid: <?php var_dump( $form1->isValid ) ?>
 <?php print_r( $form1->errors ) ?>
 
 <?php print_r( $_POST ) ?>
+
+Mem: <?php echo memory_get_usage() ?>
 </pre>
 
 </body>

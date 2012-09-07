@@ -162,7 +162,6 @@ class OnceForm
 	{
 		$form = $this->form;
 		
-		// :TODO: expand for other form types
 		$inputs = $form->select("input");
 		
 		// Every field might be skipped for various reasons
@@ -217,6 +216,38 @@ class OnceForm
 				break;
 			}
 		}
+		
+		// sets select box defaults to submitted values
+		// This has the side effect of sanitizing the input data against the 
+		// specified options list.
+		$selects = $form->select("select");
+		foreach( $selects as $select )
+		{
+			$options = $select->select( "option" );
+			
+			// if there is no sbumitted value, don't mess with the select box
+			if ( !isset( $data[ $select->name ] ) )
+				continue;
+			
+			// find the posted option, and unset the default
+			foreach( $options as $option )
+			{
+				// unset the default
+				if ( $option->hasAttribute( 'selected' ) )
+					$option->deleteAttribute( 'selected' );
+				
+				// get the value - it's either the value prop, or the innertext.
+				$value = $option->value;
+				if ( is_null( $value ) )
+					$value = $option->getInnerText();
+				
+				// set the new selected item
+				if ( $value == $data[ $select->name ] )
+					$option->addAttribute( 'selected', 'selected' );
+				
+			}
+		}
+		
 	}
 	
 	/**
@@ -280,6 +311,18 @@ class OnceForm
 	
 	private function validate_selects( $selects, $data )
 	{
+		$valid = true;
+		
+		foreach( $selects as $select )
+		{
+			$validator = new SelectValidator( $select, $select->select( 'option' ) );
+			
+			$this->validators[] = $validator;
+			
+			if ( !$validator->validate() )
+				$valid = false;
+		}
+		
 		return true;
 	}
 	
