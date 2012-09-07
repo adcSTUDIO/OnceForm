@@ -91,12 +91,13 @@ class OnceForm
 		$this->parser = new HTML_Parser_HTML5( '<div>' . $html . '</div>' );
 		
 		$root = $this->parser->root;
-		$forms = $root('form');
+		
+		$forms = $root->select('form');
 		
 		$form = $this->form = $forms[0];
 		
 		// fixes HTML5 self closing issue with ganon.
-		foreach( $form('*') as $elem ) {
+		foreach( $form->select('*') as $elem ) {
 			$elem->self_close_str="";
 		}
 	}
@@ -138,7 +139,7 @@ class OnceForm
 	{
 		$form = $this->form;
 		
-		$inputs = $form('input');
+		$inputs = $form->select('input');
 		
 		$data = array();
 		
@@ -162,7 +163,7 @@ class OnceForm
 		$form = $this->form;
 		
 		// :TODO: expand for other form types
-		$inputs = $form("input");
+		$inputs = $form->select("input");
 		
 		// Every field might be skipped for various reasons
 		// so we'll normalize the request data.
@@ -235,13 +236,13 @@ class OnceForm
 		
 		$valid = true;
 		
-		if ( !$this->validate_inputs( $form('input'), $data ) )
+		if ( !$this->validate_inputs( $form->select('input'), $data ) )
 			$valid = false;
 		
-		if ( !$this->validate_selects( $form('select'), $data ) )
+		if ( !$this->validate_selects( $form->select('select'), $data ) )
 			$valid = false;
 		
-		if ( !$this->validate_textareas( $form('textarea'), $data ) )
+		if ( !$this->validate_textareas( $form->select('textarea'), $data ) )
 			$valid = false;
 		
 		return $valid;	
