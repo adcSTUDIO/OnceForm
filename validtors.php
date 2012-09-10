@@ -267,3 +267,21 @@ class SelectValidator extends InputValidator
 	// parent takes care of validation
 	
 }
+
+class TextareaValidator extends InputValidator
+{
+	public function __construct( $props = NULL )
+	{
+		parent::__construct( $props );
+		
+		if ( !is_null( $props ) )
+		{
+			if ( isset( $props->value ) )
+				$this->value = $props->value;
+			
+			if ( is_null( $this->value ) )
+				$this->value = $props->getInnerText();
+		var_dump( $props->getInnerText() );
+		}
+	}
+}

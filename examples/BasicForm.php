@@ -86,7 +86,7 @@ submit invalid data to the server to demo the OnceForm.)</p></td>
 </p>
 <p>
 	<label for="textTest">Enter some text</label><br>
-	<textarea id="textTest" name="textTest"></textarea>
+	<textarea id="textTest" name="textTest" required></textarea>
 </p>
 <p>
 	<input type="submit" value="Go!">

@@ -162,8 +162,13 @@ class OnceForm
 	{
 		$form = $this->form;
 		
-		$inputs = $form->select("input");
-		
+		$this->set_inputs( $form->select('input'), $data );
+		$this->set_selects( $form->select('select'), $data );
+		$this->set_textareas( $form->select('textarea'), $data );
+	}
+	
+	private function set_inputs( $inputs, $data )
+	{
 		// Every field might be skipped for various reasons
 		// so we'll normalize the request data.
 		foreach( $inputs as $input )
@@ -216,11 +221,13 @@ class OnceForm
 				break;
 			}
 		}
-		
+	}
+	
+	private function set_selects( $selects, $data )
+	{
 		// sets select box defaults to submitted values
 		// This has the side effect of sanitizing the input data against the 
 		// specified options list.
-		$selects = $form->select("select");
 		foreach( $selects as $select )
 		{
 			$options = $select->select( "option" );
@@ -247,7 +254,20 @@ class OnceForm
 				
 			}
 		}
-		
+	}
+	
+	private function set_textareas( $textareas, $data )
+	{
+		// sets default textarea content
+		foreach( $textareas as $textarea )
+		{
+			if ( isset( $data[ $textarea->name ] ) )
+				$textarea->setInnerText( $data[ $textarea->name ] );
+			else if ( $value = $textarea->getInnerText() )
+				$data[ $textarea->name ] = $value;
+			else
+				$data[ $textarea->name ] = '';
+		}
 	}
 	
 	/**
@@ -323,12 +343,24 @@ class OnceForm
 				$valid = false;
 		}
 		
-		return true;
+		return $valid;
 	}
 	
 	private function validate_textareas( $textareas, $data )
 	{
-		return true;
+		$valid = true;
+		
+		foreach( $textareas as $textarea )
+		{
+			$validator = new TextareaValidator( $textarea );
+			
+			$this->validators[] = $validator;
+			
+			if ( !$validator->validate() )
+				$valid = false;
+		}
+		
+		return $valid;
 	}
 	
 	private $parser;
