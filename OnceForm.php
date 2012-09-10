@@ -1,4 +1,5 @@
 <?php
+include 'lib/ganon.php';
 include 'validtors.php';
 
 /*
@@ -57,10 +58,11 @@ class OnceForm
 		{
 			$this->add_form_func( $form_func );
 			
+			// $this->data is set here
 			$this->check_request();
 			
 			if ( $this->isRequest )
-				$this->isValid = $this->validate( $data );
+				$this->isValid = $this->validate();
 		}
 	}
 	
