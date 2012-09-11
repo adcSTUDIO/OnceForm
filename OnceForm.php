@@ -1,6 +1,6 @@
 <?php
 include 'lib/ganon.php';
-include 'validtors.php';
+include 'validators.php';
 
 /*
 The OnceForm - Write once HTML5 forms processing for PHP.

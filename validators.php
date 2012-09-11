@@ -187,7 +187,6 @@ class PatternValidator extends InputValidator
 /**
  * Validates email fields.
  */
- 
 class EmailValidator extends PatternValidator
 {
 	static private $email_pattern = "/[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/";
