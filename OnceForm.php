@@ -131,7 +131,7 @@ class OnceForm
 			$this->isRequest = true;
 			
 			// This checks the form values have return values, and polyfills if not.
-			$this->data = $data = $this->set_request_data( $data );
+			$this->data = $this->set_request_data( $data );
 		}
 	}
 	
@@ -169,6 +169,8 @@ class OnceForm
 		$this->set_inputs( $form->select('input[name]'), $data );
 		$this->set_selects( $form->select('select[name]'), $data );
 		$this->set_textareas( $form->select('textarea[name]'), $data );
+		
+		return $data;
 	}
 	
 	private function set_inputs( $inputs, $data )
