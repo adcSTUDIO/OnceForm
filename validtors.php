@@ -53,8 +53,7 @@ class InputValidator
 			if ( isset( $props->name ) )
 				$this->name = $props->name;
 			
-			if ( isset( $props->value ) )
-				$this->value = $props->value;
+			$this->setValue( $props );
 			
 			if ( isset( $props->required ) )
 				$this->required = $props->required;
@@ -68,6 +67,13 @@ class InputValidator
 		
 		return $this->isValid = empty( $this->errors );
 	}
+	
+	public function setValue( $props )
+	{
+		if ( isset( $props->value ) )
+			$this->value = $props->value;
+	}
+	
 }
 
 class NumbericValidator extends InputValidator
@@ -221,50 +227,35 @@ class EmailValidator extends PatternValidator
  */
 class SelectValidator extends InputValidator
 {
-	public function __construct( $props = NULL, $options = NULL )
+	public function __construct( $props = NULL )
 	{
 		parent::__construct( $props );
 		
-		if ( is_null( $options ) && is_callable( $props->select ) )
-			$options = $props->select( 'option' );
+		if ( !is_null( $props ) )
+			$this->setValue( $props );
+	}
+	
+	public function setValue( $props )
+	{
+		$options = $props->select( 'option' );
 		
-		if ( !is_null( $options ) )
+		// get the value from the options list
+		foreach( $options as $option )
 		{
-			// get the value from the options list
-			foreach( $options as $option )
+			// find the selection option and get the value
+			if ( $option->hasAttribute( 'selected' ) )
 			{
-				// cast $option if array
-				if ( is_array( $option ) )
-					$option = (object) $option;
+				// get the value - it's either the value prop, or the text/innertext.
+				if ( isset( $option->value ) )
+					$this->value = $option->value;
 				
-				// find the selection option and get the value
-				if ( ( is_callable( $option->hasAttribute ) && 
-							$option->hasAttribute( 'selected' ) )
-					 || isset( $option->selected ) )
-				{
-					// get the value - it's either the value prop, or the text/innertext.
-					if ( isset( $option->value ) )
-						$this->value = $option->value;
-					
-					if ( is_null( $this->value ) )
-					{
-						// Allow the use of a ganon node list here - the default in OnceForm
-						// `is_callable` didn't work here - some magic ganon thing I'm sure
-						//try {
-							$this->value = $option->getInnerText();
-						/*}
-						catch( e:Exception) {
-							// :UNTESTED: The non-ganon path is not tested.
-							$this->value = $option->text;
-						}*/
-					}
-					break;
-				}
+				if ( is_null( $this->value ) )
+					$this->value = $option->getInnerText();
+				
+				break;
 			}
 		}
 	}
-	
-	// parent takes care of validation
 	
 }
 
@@ -275,13 +266,17 @@ class TextareaValidator extends InputValidator
 		parent::__construct( $props );
 		
 		if ( !is_null( $props ) )
-		{
-			if ( isset( $props->value ) )
-				$this->value = $props->value;
-			
-			if ( is_null( $this->value ) )
-				$this->value = $props->getInnerText();
-		var_dump( $props->getInnerText() );
-		}
+			$this->setValue( $props );
+		
 	}
+	
+	public function setValue( $props )
+	{
+		if ( isset( $props->value ) )
+			$this->value = $props->value;
+		
+		if ( is_null( $this->value ) )
+			$this->value = $props->getInnerText();
+	}
+	
 }
