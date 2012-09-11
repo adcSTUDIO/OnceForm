@@ -39,6 +39,8 @@ class OnceForm
 	public $validators = array();
 	public $data = array();
 	
+	protected $form;
+	
 	public function __toString() {
 		$form = $this->form;
 		return $form->toString();
@@ -90,9 +92,9 @@ class OnceForm
 	{
 		// Padding with div to workaround a limitation in ganon, where root element
 		// attributes are not accessible.
-		$this->parser = new HTML_Parser_HTML5( '<div>' . $html . '</div>' );
+		$parser = new HTML_Parser_HTML5( '<div>' . $html . '</div>' );
 		
-		$root = $this->parser->root;
+		$root = $parser->root;
 		
 		$forms = $root->select('form');
 		
@@ -164,9 +166,9 @@ class OnceForm
 	{
 		$form = $this->form;
 		
-		$this->set_inputs( $form->select('input'), $data );
-		$this->set_selects( $form->select('select'), $data );
-		$this->set_textareas( $form->select('textarea'), $data );
+		$this->set_inputs( $form->select('input[name]'), $data );
+		$this->set_selects( $form->select('select[name]'), $data );
+		$this->set_textareas( $form->select('textarea[name]'), $data );
 	}
 	
 	private function set_inputs( $inputs, $data )
@@ -206,7 +208,7 @@ class OnceForm
 					
 				break;
 				
-				// The may be blank if the disabled flag is set
+				// These may be blank if the disabled flag is set
 				case 'email':
 				case 'text':
 				case 'hidden':
@@ -272,8 +274,15 @@ class OnceForm
 		}
 	}
 	
+	public function add_validator( $name, $validator ) {
+		$this->validators[ $name ] = $validator;
+	}
+	
 	/**
-	 * Validates the OnceForm against the data passed.
+	 * Validates the OnceForm against the data passed. This method will 
+	 * create the validator objects and store them in $this->validators
+	 * by name. To override a validator for a specific input element
+	 * add it to $this->validators before calling validate().
 	 *
 	 * @param array $data The request data (or other) to validate 
 	 * against the OnceForm.
@@ -289,13 +298,13 @@ class OnceForm
 		
 		$valid = true;
 		
-		if ( !$this->validate_inputs( $form->select('input'), $data ) )
+		if ( !$this->validate_inputs( $form->select('input[name]'), $data ) )
 			$valid = false;
 		
-		if ( !$this->validate_selects( $form->select('select'), $data ) )
+		if ( !$this->validate_selects( $form->select('select[name]'), $data ) )
 			$valid = false;
 		
-		if ( !$this->validate_textareas( $form->select('textarea'), $data ) )
+		if ( !$this->validate_textareas( $form->select('textarea[name]'), $data ) )
 			$valid = false;
 		
 		return $valid;	
@@ -307,23 +316,33 @@ class OnceForm
 		
 		foreach( $inputs as $input )
 		{
-			switch( $input->type )
+			// Don't override provided validators
+			if ( !isset( $this->validators[ $input->name ] ) )
 			{
-				case 'email':
-					$validator = new EmailValidator( $input );
-				break;
+				switch( $input->type )
+				{
+					case 'email':
+						$validator = new EmailValidator( $input );
+					break;
+					
+					case 'radio':
+					case 'checkbox':
+					case 'text':
+					case 'hidden':
+					default:
+						$validator = new InputValidator( $input );
+					break;
+				}
 				
-				case 'radio':
-				case 'checkbox':
-				case 'text':
-				case 'hidden':
-				default:
-					$validator = new InputValidator( $input );
-				break;
+				$this->validators[ $input->name ] = $validator;
+			}
+			else
+			{
+				$validator = $this->validators[ $input->name ];
+				$validator->setValue( $input );
 			}
 			
-			$this->validators[] = $validator;
-			
+			// do the actual validation
 			if ( !$validator->validate() )
 				$valid = false;
 		}
@@ -337,9 +356,17 @@ class OnceForm
 		
 		foreach( $selects as $select )
 		{
-			$validator = new SelectValidator( $select, $select->select( 'option' ) );
-			
-			$this->validators[] = $validator;
+			if ( !isset( $this->validators[ $select->name ] ) )
+			{
+				$validator = new SelectValidator( $select );
+				
+				$this->validators[ $select->name ] = $validator;
+			}
+			else
+			{
+				$validator = $this->validators[ $select->name ];
+				$validator->setValue( $select );
+			}
 			
 			if ( !$validator->validate() )
 				$valid = false;
@@ -354,9 +381,17 @@ class OnceForm
 		
 		foreach( $textareas as $textarea )
 		{
-			$validator = new TextareaValidator( $textarea );
-			
-			$this->validators[] = $validator;
+			if ( !isset( $this->validators[ $textarea->name ] ) )
+			{
+				$validator = new TextareaValidator( $textarea );
+				
+				$this->validators[ $textarea->name ] = $validator;
+			}
+			else
+			{
+				$validator = $this->validators[ $input->name ];
+				$validator->setValue( $textarea );
+			}
 			
 			if ( !$validator->validate() )
 				$valid = false;
@@ -365,6 +400,4 @@ class OnceForm
 		return $valid;
 	}
 	
-	private $parser;
-	private $form;
 }
