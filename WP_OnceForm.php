@@ -57,7 +57,7 @@ class WP_OnceForm extends OnceForm
 			{
 				$this->add_validator( $field->name, new NonceValidator( $field, $action ) );
 				// for testing
-				$field->setAttribute( 'type', 'text' );
+				//$field->setAttribute( 'type', 'text' );
 			}
 			// finally, add the elements
 			$form->addChild( $field );
