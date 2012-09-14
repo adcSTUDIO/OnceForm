@@ -41,6 +41,8 @@ class OnceForm
 	
 	protected $form;
 	
+	protected $user_validator;
+	
 	public function __toString() {
 		$form = $this->form;
 		return $form->toString();
@@ -309,6 +311,9 @@ class OnceForm
 		if ( !$this->validate_textareas( $form->select('textarea[name]'), $data ) )
 			$valid = false;
 		
+		if ( $this->user_validator && !call_user_func( $this->user_validator ) )
+			$valid = false;
+		
 		return $valid;	
 	}
 	
@@ -400,6 +405,11 @@ class OnceForm
 		}
 		
 		return $valid;
+	}
+	
+	public function set_validator( /* callable */ $func )
+	{
+		$this->user_validator = $func;
 	}
 	
 }
