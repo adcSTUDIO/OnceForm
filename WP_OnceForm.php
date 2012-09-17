@@ -16,8 +16,14 @@ class WP_OnceForm extends OnceForm
 			
 			$this->insert_nonce( $action );
 			
-			// $this->data is set here
-			$this->check_request();
+			// get the request data
+			$data = $this->get_request();
+			
+			// clean up Wordpress's slashy mess
+			stripslashes_deep( $this->data );
+			
+			// verify, and set this new data
+			$this->resolve_request( $data );
 			
 			if ( $this->isRequest )
 				$this->isValid = $this->validate();

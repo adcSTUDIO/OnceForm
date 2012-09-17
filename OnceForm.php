@@ -62,8 +62,11 @@ class OnceForm
 		{
 			$this->add_form_func( $form_func );
 			
-			// $this->data is set here
-			$this->check_request();
+			// get the request data
+			$data = &$this->get_request();
+			
+			// verify, and set this new data
+			$this->resolve_request( $data );
 			
 			if ( $this->isRequest )
 				$this->isValid = $this->validate();
@@ -114,7 +117,7 @@ class OnceForm
 	 * was passed to the constructor, this will be automatically called on
 	 * construction. Otherwise, it must be called manually.
 	 */
-	public function check_request()
+	public function get_request()
 	{
 		$form = $this->form;
 		
@@ -124,17 +127,27 @@ class OnceForm
 			// the default `method` if none specified is GET
 			$data = $_GET;
 		
+		if ( !empty( $data ) )
+			$this->isRequest = true;
+		
+		return $data;
+	}
+	
+	/**
+	 * Resolves the request data, either sets the form elements, or gets defaults.
+	 * This was a specifically divided from get_request to allow subclasses to
+	 * filter the request data (such as removing slashes in WordPress).
+	 * @param $data A reference to the array of request data.
+	 */
+	protected function resolve_request( &$data )
+	{
 		// If the $data array is empty, nothing was sent to the server,
 		// so we aren't doing a postback.
 		if ( empty( $data ) )
 			$this->data = $this->get_default_data();
-		
-		else {
-			$this->isRequest = true;
-			
+		else
 			// This checks the form values have return values, and polyfills if not.
 			$this->data = $this->set_request_data( $data );
-		}
 	}
 	
 	/**
