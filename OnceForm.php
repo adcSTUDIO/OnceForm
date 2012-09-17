@@ -297,6 +297,20 @@ class OnceForm
 		$this->validators[ $name ] = $validator;
 	}
 	
+	public function set_required( $name, $required = true )
+	{
+		$form = $this->form;
+		
+		$elms = $form->select( "[name='$name']" );
+		
+		foreach ( $elms as $elm ) {
+			if ( $required )
+				$elm->addAttribute( 'required', 'required' );
+			else
+				$elm->removeAttribute( 'required' );
+		}
+	}
+	
 	/**
 	 * Validates the OnceForm against the data passed. This method will 
 	 * create the validator objects and store them in $this->validators
@@ -319,7 +333,7 @@ class OnceForm
 		
 		if ( $this->user_validator )
 		{
-			$errors = call_user_func( $this->user_validator, $data );
+			$errors = call_user_func( $this->user_validator, $data, $this );
 			
 			$validator = (object)array(
 				'errors' => $errors,
