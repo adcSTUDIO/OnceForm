@@ -56,11 +56,13 @@ class OnceForm
 	 * output buffer. Note: If a form func is passed to the constructor,
 	 * the OnceForm will automatically check and validate the request.
 	 */
-	public function __construct( $form_func = NULL )
+	public function __construct( $form_func = NULL, $validator = NULL )
 	{
 		if ( !is_null( $form_func ) )
 		{
 			$this->add_form_func( $form_func );
+			
+			$this->user_validator = $validator;
 			
 			// get the request data
 			$data = &$this->get_request();
@@ -315,6 +317,24 @@ class OnceForm
 		
 		$valid = true;
 		
+		if ( $this->user_validator )
+		{
+			$errors = call_user_func( $this->user_validator, $data );
+			
+			$validator = (object)array(
+				'errors' => $errors,
+				'name' => 'user validator',
+				'isValid' => false
+			);
+			
+			if ( empty( $errors ) )
+				$validator->isValid = true;
+			else
+				$valid = false;
+			
+			$this->validators[] = $validator;
+		}
+		
 		if ( !$this->validate_inputs( $form->select('input[name]'), $data ) )
 			$valid = false;
 		
@@ -322,9 +342,6 @@ class OnceForm
 			$valid = false;
 		
 		if ( !$this->validate_textareas( $form->select('textarea[name]'), $data ) )
-			$valid = false;
-		
-		if ( $this->user_validator && !call_user_func( $this->user_validator ) )
 			$valid = false;
 		
 		return $valid;	

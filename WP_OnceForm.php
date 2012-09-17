@@ -6,7 +6,7 @@ class WP_OnceForm extends OnceForm
 	protected $action;
 	protected $nonce_name;
 	
-	public function __construct( $form_func = NULL, $action = -1 )
+	public function __construct( $form_func = NULL, $validator = NULL, $action = -1 )
 	{
 		parent::__construct();
 		
@@ -16,11 +16,13 @@ class WP_OnceForm extends OnceForm
 			
 			$this->insert_nonce( $action );
 			
+			$this->user_validator = $validator;
+			
 			// get the request data
 			$data = $this->get_request();
 			
 			// clean up Wordpress's slashy mess
-			stripslashes_deep( $this->data );
+			stripslashes_deep( $data );
 			
 			// verify, and set this new data
 			$this->resolve_request( $data );
