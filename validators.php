@@ -236,7 +236,7 @@ class SelectValidator extends InputValidator
 	
 	public function setValue( $props )
 	{
-		$options = $props->select( 'option' );
+		$options = $props->getElementsByTagName( 'option' );
 		
 		// get the value from the options list
 		foreach( $options as $option )
@@ -245,11 +245,11 @@ class SelectValidator extends InputValidator
 			if ( $option->hasAttribute( 'selected' ) )
 			{
 				// get the value - it's either the value prop, or the text/innertext.
-				if ( isset( $option->value ) )
-					$this->value = $option->value;
+				if ( $option->hasAttribute('value') )
+					$this->value = $option->getAttribute('value');
 				
 				if ( is_null( $this->value ) )
-					$this->value = $option->getInnerText();
+					$this->value = $option->nodeValue;
 				
 				break;
 			}
@@ -275,7 +275,7 @@ class TextareaValidator extends InputValidator
 			$this->value = $props->value;
 		
 		if ( is_null( $this->value ) )
-			$this->value = $props->getInnerText();
+			$this->value = $props->nodeValue;
 	}
 	
 }

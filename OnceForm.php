@@ -1,5 +1,4 @@
 <?php
-include 'lib/ganon.php';
 include 'validators.php';
 
 /*
@@ -40,12 +39,12 @@ class OnceForm
 	public $data = array();
 	
 	protected $form;
+	protected $doc;
 	
 	protected $user_validator;
 	
 	public function __toString() {
-		$form = $this->form;
-		return $form->toString();
+		return $this->doc->saveHTML();
 	}
 	
 	/**
@@ -65,7 +64,7 @@ class OnceForm
 			$this->user_validator = $validator;
 			
 			// get the request data
-			$data = &$this->get_request();
+			$data = $this->get_request();
 			
 			// verify, and set this new data
 			$this->resolve_request( $data );
@@ -97,20 +96,13 @@ class OnceForm
 	 */
 	public function parse_form( $html )
 	{
-		// Padding with div to workaround a limitation in ganon, where root element
-		// attributes are not accessible.
-		$parser = new HTML_Parser_HTML5( '<div>' . $html . '</div>' );
+		$this->doc = new DOMDocument();
+
+		$this->doc->loadHTML( $html );
+
+		$form = $this->doc->getElementsByTagName( 'form' );
 		
-		$root = $parser->root;
-		
-		$forms = $root->select('form');
-		
-		$form = $this->form = $forms[0];
-		
-		// fixes HTML5 self closing issue with ganon.
-		foreach( $form->select('*') as $elem ) {
-			$elem->self_close_str="";
-		}
+		$this->form = $form->item( 0 );
 	}
 	
 	/**
@@ -123,7 +115,7 @@ class OnceForm
 	{
 		$form = $this->form;
 		
-		if ( 'POST' == strtoupper( $form->method ) )
+		if ( 'POST' == strtoupper( $form->getAttribute('method') ) )
 			$data = $_POST;
 		else
 			// the default `method` if none specified is GET
@@ -160,14 +152,14 @@ class OnceForm
 	{
 		$form = $this->form;
 		
-		$inputs = $form->select('input');
+		$inputs = $form->getElementsByTagName('input');
 		
 		$data = array();
 		
 		foreach ( $inputs as $input ) {
-			switch( $input->type ) {
+			switch( $input->getAttribute('type') ) {
 				default:
-					$data[ $input->name ] = $input->value;
+					$data[ $input->getAttribute('name') ] = $input->getAttribute('value');
 			}
 		}
 		
@@ -183,10 +175,31 @@ class OnceForm
 	{
 		$form = $this->form;
 		
-		$this->set_inputs( $form->select('input[name]'), $data );
-		$this->set_selects( $form->select('select[name]'), $data );
-		$this->set_textareas( $form->select('textarea[name]'), $data );
+		// get inputs
+		$inputs = array();
+		$nodes = $form->getElementsByTagName('input');
+		foreach( $nodes as $node ) {
+			if ( $node->hasAttribute( 'name' ) && $node->getAttribute( 'name' ) )
+				$inputs[] = $node;
+		}
+		$this->set_inputs( $inputs, $data );
 		
+		$selects = array();
+		$nodes = $form->getElementsByTagName('select');
+		foreach( $nodes as $node ) {
+			if ( $node->hasAttribute( 'name' ) && $node->getAttribute( 'name' ) )
+				$selects[] = $node;
+		}
+		$this->set_selects( $selects, $data );
+
+		$textareas = array();
+		$nodes = $form->getElementsByTagName('textarea');
+		foreach( $nodes as $node ) {
+			if ( $node->hasAttribute( 'name' ) && $node->getAttribute( 'name' ) )
+				$textareas[] = $node;
+		}
+		$this->set_textareas( $textareas, $data );
+
 		return $data;
 	}
 	
@@ -196,31 +209,31 @@ class OnceForm
 		// so we'll normalize the request data.
 		foreach( $inputs as $input )
 		{
-			switch( $input->type )
+			$name = $input->getAttribute('name');
+			$type = $input->getAttribute('type');
+
+			switch( $type )
 			{
 				// These are a bit special, they may need the checked prop added
 				case 'radio':
 				case 'checkbox':
-					if ( isset( $data[ $input->name ] ) )
+					if ( isset( $data[ $name ] ) )
 					{
 						// if the request data contains the element name
 						// and is a checkbox, then it's checked
-						if ( $input->type == 'checkbox' ) {
-							$input->addAttribute( 'checked', 'checked' );
+						if ( 'checkbox' == $type ) {
+							$input->setAttribute( 'checked', 'checked' );
 						}
 						// radios are only marked "checked" if the value matches
-						else if (
-							$input->type == 'radio' &&
-							$input->value == $data[ $input->name ]
-						)
-							$input->addAttribute( 'checked', 'checked' );
+						else if ( 'radio' == $type && $input->getAttribute('value') == $data[ $name ] )
+							$input->setAttribute( 'checked', 'checked' );
 					}
 					else {
 						// poly fill to prevent php errors
-						$data[ $input->name ] = '';
+						$data[ $name ] = '';
 						
 						// the box is unchecked
-						$input->deleteAttribute( 'checked' );
+						$input->removeAttribute( 'checked' );
 					}
 					
 					// :TODO: Figure out if more polyfilling is required for sets
@@ -233,14 +246,14 @@ class OnceForm
 				case 'hidden':
 				default:
 					// set value prop to request value
-					if ( isset( $data[ $input->name ] ) )
-						$input->value = $data[ $input->name ];
+					if ( isset( $data[ $name] ) )
+						$input->setAttribute('value', $data[ $name ] );
 					// or set request value to elem.value prop
-					else if ( isset( $input->value ) )
-						$data[ $input->name ] = $input->value;
+					else if ( $input->hasAttribute('value') )
+						$data[ $name ] = $input->getAttribute('value');
 					// or default to empty
 					else
-						$data[ $input->name ] = '';
+						$data[ $name ] = '';
 				break;
 			}
 		}
@@ -253,10 +266,12 @@ class OnceForm
 		// specified options list.
 		foreach( $selects as $select )
 		{
-			$options = $select->select( "option" );
+			$name = $select->getAttribute('name');
+
+			$options = $select->getElementsByTagName( "option" );
 			
 			// if there is no sbumitted value, don't mess with the select box
-			if ( !isset( $data[ $select->name ] ) )
+			if ( !isset( $data[ $name ] ) )
 				continue;
 			
 			// find the posted option, and unset the default
@@ -264,17 +279,17 @@ class OnceForm
 			{
 				// unset the default
 				if ( $option->hasAttribute( 'selected' ) )
-					$option->deleteAttribute( 'selected' );
+					$option->removeAttribute( 'selected' );
 				
 				// get the value - it's either the value prop, or the innertext.
-				$value = $option->value;
-				if ( is_null( $value ) )
-					$value = $option->getInnerText();
-				
+				if ( $option->hasAttribute('value') )
+					$value = $option->getAttribute('value');
+				else
+					$value = $option->nodeValue;
+
 				// set the new selected item
-				if ( $value == $data[ $select->name ] )
-					$option->addAttribute( 'selected', 'selected' );
-				
+				if ( $value == $data[ $name ] )
+					$option->setAttribute( 'selected', 'selected' );
 			}
 		}
 	}
@@ -284,12 +299,23 @@ class OnceForm
 		// sets default textarea content
 		foreach( $textareas as $textarea )
 		{
-			if ( isset( $data[ $textarea->name ] ) )
-				$textarea->setInnerText( $data[ $textarea->name ] );
-			else if ( $value = $textarea->getInnerText() )
-				$data[ $textarea->name ] = $value;
+			$name = $textarea->getAttribute('name');
+
+			if ( isset( $data[ $name ] ) )
+			{
+				// remove all child nodes (including text nodes)
+				foreach ( $textarea->childNodes as $node )
+					$textarea->removeChild( $node );
+				
+				// create and append a new text node
+				$textarea->appendChild(
+					$this->doc->createTextNode( $data[ $name ] )
+				);
+			}
+			else if ( $value = $textarea->nodeValue )
+				$data[ $name ] = $value;
 			else
-				$data[ $textarea->name ] = '';
+				$data[ $name ] = '';
 		}
 	}
 	
@@ -327,8 +353,6 @@ class OnceForm
 		if ( is_null( $data ) )
 			$data = $this->data;
 		
-		$form = $this->form;
-		
 		$valid = true;
 		
 		if ( $this->user_validator )
@@ -349,13 +373,15 @@ class OnceForm
 			$this->validators[] = $validator;
 		}
 		
-		if ( !$this->validate_inputs( $form->select('input[name]'), $data ) )
+		$xpath = new DOMXpath($this->doc);
+		
+		if ( !$this->validate_inputs( $xpath->query('//input[@name]'), $data ) )
 			$valid = false;
 		
-		if ( !$this->validate_selects( $form->select('select[name]'), $data ) )
+		if ( !$this->validate_selects( $xpath->query('//select[@name]'), $data ) )
 			$valid = false;
 		
-		if ( !$this->validate_textareas( $form->select('textarea[name]'), $data ) )
+		if ( !$this->validate_textareas( $xpath->query('//textarea[@name]'), $data ) )
 			$valid = false;
 		
 		return $valid;	
@@ -368,9 +394,9 @@ class OnceForm
 		foreach( $inputs as $input )
 		{
 			// Don't override provided validators
-			if ( !isset( $this->validators[ $input->name ] ) )
+			if ( !isset( $this->validators[ $input->getAttribute('name') ] ) )
 			{
-				switch( $input->type )
+				switch( $input->getAttribute('type') )
 				{
 					case 'email':
 						$validator = new EmailValidator( $input );
@@ -385,11 +411,11 @@ class OnceForm
 					break;
 				}
 				
-				$this->validators[ $input->name ] = $validator;
+				$this->validators[ $input->getAttribute('name') ] = $validator;
 			}
 			else
 			{
-				$validator = $this->validators[ $input->name ];
+				$validator = $this->validators[ $input->getAttribute('name') ];
 				$validator->setValue( $input );
 			}
 			
@@ -407,15 +433,15 @@ class OnceForm
 		
 		foreach( $selects as $select )
 		{
-			if ( !isset( $this->validators[ $select->name ] ) )
+			if ( !isset( $this->validators[ $select->getAttribute('name') ] ) )
 			{
 				$validator = new SelectValidator( $select );
 				
-				$this->validators[ $select->name ] = $validator;
+				$this->validators[ $select->getAttribute('name') ] = $validator;
 			}
 			else
 			{
-				$validator = $this->validators[ $select->name ];
+				$validator = $this->validators[ $select->getAttribute('name') ];
 				$validator->setValue( $select );
 			}
 			
@@ -432,11 +458,11 @@ class OnceForm
 		
 		foreach( $textareas as $textarea )
 		{
-			if ( !isset( $this->validators[ $textarea->name ] ) )
+			if ( !isset( $this->validators[ $textarea->getAttribute('name') ] ) )
 			{
 				$validator = new TextareaValidator( $textarea );
 				
-				$this->validators[ $textarea->name ] = $validator;
+				$this->validators[ $textarea->getAttribute('name') ] = $validator;
 			}
 			else
 			{
