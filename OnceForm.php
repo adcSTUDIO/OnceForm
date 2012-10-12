@@ -38,13 +38,17 @@ class OnceForm
 	public $validators = array();
 	public $data = array();
 	
-	protected $form;
-	protected $doc;
+	public $form;
+	public $doc;
 	
 	protected $user_validator;
 	
 	public function __toString() {
-		return $this->doc->saveHTML();
+		return $this->doc->saveHTML( $this->form );
+	}
+
+	public function toString() {
+		return $this->__toString();
 	}
 	
 	/**
