@@ -44,31 +44,24 @@ class WP_OnceForm extends OnceForm
 		$nonce = wp_nonce_field( $action, $name, $referer, false );
 		
 		// parse into nodes, so we can manipulate
-		$this->parser = new HTML_Parser_HTML5( '<div>' . $nonce . '</div>' );
+		$nonce_doc = new DOMDocument( $nonce );
 		
 		// grab the new elements
-		$root = $this->parser->root;
-		$fields = $root->select('div *');
-		
-		$form = $this->form;
+		$xpath = new DOMXPath( $nonce_doc );
+		$fields = $xpath->query('//input[@name]');
 		
 		foreach( $fields as $field )
 		{
-			// get rid of the self closing business
-			$field->self_close_str="";
-			
-			// monkey patch the `required` flag in to each
-			$field->addAttribute( 'required', 'required' );
+			// monkey patch the `required` flag for each
+			$field->setAttribute( 'required', 'required' );
 			
 			// manually set the nonce validator
-			if ( $field->name == $name )
-			{
-				$this->add_validator( $field->name, new NonceValidator( $field, $action ) );
-				// for testing
-				//$field->setAttribute( 'type', 'text' );
-			}
+			$fname = $field->getAttribute('name');
+			if ( $fname == $name )
+				$this->add_validator( $fname, new NonceValidator( $field, $action ) );
+
 			// finally, add the elements
-			$form->addChild( $field );
+			$this->form->appendChild( $field );
 		}
 	}
 	
