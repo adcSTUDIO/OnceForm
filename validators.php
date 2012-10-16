@@ -43,20 +43,17 @@ class InputValidator
 	 * a base for other input type validators.
 	 * @param stdObect|array The properties to validate.
 	 */
-	public function __construct( $props = NULL )
+	public function __construct( DOMNode $props = NULL )
 	{
-		if ( is_array( $props ) )
-			$props = (object) $props;
-		
 		if ( !is_null( $props ) )
 		{
-			if ( isset( $props->name ) )
-				$this->name = $props->name;
+			if ( $props->hasAttribute('name') )
+				$this->name = $props->getAttribute('name');
 			
 			$this->setValue( $props );
 			
-			if ( isset( $props->required ) )
-				$this->required = $props->required;
+			if ( $props->hasAttribute('required') )
+				$this->required = true;
 		}
 	}
 	
@@ -68,10 +65,10 @@ class InputValidator
 		return $this->isValid = empty( $this->errors );
 	}
 	
-	public function setValue( $props )
+	public function setValue( DOMNode $props )
 	{
-		if ( isset( $props->value ) )
-			$this->value = $props->value;
+		if ( $props->hasAttribute('value') )
+			$this->value = $props->getAttribute('value');
 	}
 	
 }
@@ -82,23 +79,20 @@ class NumbericValidator extends InputValidator
 	public $max;
 	public $min;
 	
-	public function __construct( $props = NULL )
+	public function __construct( DOMNode $props = NULL )
 	{
 		parent::__construct( $props );
 		
-		if ( is_array( $props ) )
-			$props = (object) $props;
-		
 		if ( !is_null( $props ) )
 		{
-			if ( isset( $props->min ) )
-				$this->min = $props->min;
+			if ( $props->hasAttribute('min') )
+				$this->min = $props->getAttribute('min');
 			
-			if ( isset( $props->max ) )
-				$this->max = $props->max;
+			if ( $props->hasAttribute('max') )
+				$this->max = $props->getAttribute('max');
 			
-			if ( isset( $props->step ) )
-				$this->step = $props->step;
+			if ( $props->hasAttribute('step') )
+				$this->step = $props->getAttribute('step');
 		}
 	}
 	
@@ -106,7 +100,7 @@ class NumbericValidator extends InputValidator
 	{
 		parent::validate();
 		
-		switch ( $node->type )
+		/*switch ( $node->type )
 		{
 			case 'number':
 			case 'range':
@@ -133,7 +127,7 @@ class NumbericValidator extends InputValidator
 			case 'time':
 			case 'week':
 				break;
-		}
+		}*/
 		
 		return $this->isValid = empty( $this->errors );
 	}
@@ -158,17 +152,14 @@ class PatternValidator extends InputValidator
 {
 	public $pattern;
 	
-	public function __construct( $props = NULL )
+	public function __construct( DOMNode $props = NULL )
 	{
 		parent::__construct( $props );
 		
-		if ( is_array( $props ) )
-			$props = (object) $props;
-		
 		if ( !is_null( $props ) )
 		{
-			if ( isset( $props->pattern ) )
-				$this->pattern = $props->pattern;
+			if ( $props->hasAttribute('pattern') )
+				$this->pattern = $props->getAttribute('pattern');
 		}
 	}
 	
@@ -191,7 +182,7 @@ class EmailValidator extends PatternValidator
 {
 	static private $email_pattern = "/[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/";
 	
-	public function __construct( $props = NULL )
+	public function __construct( DOMNode $props = NULL )
 	{
 		parent::__construct( $props );
 	}
@@ -226,7 +217,7 @@ class EmailValidator extends PatternValidator
  */
 class SelectValidator extends InputValidator
 {
-	public function __construct( $props = NULL )
+	public function __construct( DOMNode $props = NULL )
 	{
 		parent::__construct( $props );
 		
@@ -234,7 +225,7 @@ class SelectValidator extends InputValidator
 			$this->setValue( $props );
 	}
 	
-	public function setValue( $props )
+	public function setValue( DOMNode $props )
 	{
 		$options = $props->getElementsByTagName( 'option' );
 		
@@ -260,7 +251,7 @@ class SelectValidator extends InputValidator
 
 class TextareaValidator extends InputValidator
 {
-	public function __construct( $props = NULL )
+	public function __construct( DOMNode $props = NULL )
 	{
 		parent::__construct( $props );
 		
@@ -269,10 +260,10 @@ class TextareaValidator extends InputValidator
 		
 	}
 	
-	public function setValue( $props )
+	public function setValue( DOMNode $props )
 	{
-		if ( isset( $props->value ) )
-			$this->value = $props->value;
+		if ( $props->hasAttribute('value') )
+			$this->value = $props->getAttribute('value');
 		
 		if ( is_null( $this->value ) )
 			$this->value = $props->nodeValue;
