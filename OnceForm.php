@@ -100,10 +100,14 @@ class OnceForm
 	 */
 	public function parse_form( $html )
 	{
-		$this->doc = new DOMDocument();
+		$encoding = mb_detect_encoding( $html );
+		$this->doc = new DOMDocument( '', $encoding );
 
-		$this->doc->loadHTML( $html );
-
+		// Make DOMDocument use the right encoding.
+		$this->doc->loadHTML( '<html><head>
+		<meta http-equiv="content-type" content="text/html; charset='.$encoding.'">
+		</head><body>' . $html . '</body></html>' );
+		
 		$form = $this->doc->getElementsByTagName( 'form' );
 		
 		$this->form = $form->item( 0 );
