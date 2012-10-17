@@ -222,6 +222,10 @@ class OnceForm
 
 			switch( $type )
 			{
+				// special exit for items that shouldn't be set, like submit
+				case 'submit':
+				break;
+				
 				// These are a bit special, they may need the checked prop added
 				case 'radio':
 				case 'checkbox':
