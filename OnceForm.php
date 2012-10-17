@@ -339,11 +339,12 @@ class OnceForm
 	{
 		$form = $this->form;
 		
-		$elms = $form->select( "[name='$name']" );
+		$xpath = new DOMXpath($this->doc);
+		$elms = $xpath->query("//input[@name=$name]");
 		
 		foreach ( $elms as $elm ) {
 			if ( $required )
-				$elm->addAttribute( 'required', 'required' );
+				$elm->setAttribute( 'required', 'required' );
 			else
 				$elm->removeAttribute( 'required' );
 		}
