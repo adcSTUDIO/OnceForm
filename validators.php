@@ -84,6 +84,9 @@ class InputValidator
 		if ( is_null( $this->value ) )
 			return NULL;
 
+		// reset the error count when revalidating
+		$this->errors = array();
+
 		if ( $this->required && empty( $this->value ) )
 			$this->errors[] = "required field is empty";
 		
@@ -96,10 +99,14 @@ class InputValidator
 	 * classes when needed (select and textarea for example).
 	 * @param DOMNode $props The DOMNode of the input to be validated.
 	 */
-	protected function setValue( DOMNode $props )
+	public function setValue( DOMNode $props )
 	{
 		if ( $props->hasAttribute('value') )
 			$this->value = $props->getAttribute('value');
+		else
+			$this->value = '';
+
+		$this->validate();
 	}
 	
 }
@@ -256,7 +263,7 @@ class SelectValidator extends InputValidator
 			$this->setValue( $props );
 	}
 	
-	protected function setValue( DOMNode $props )
+	public function setValue( DOMNode $props )
 	{
 		$options = $props->getElementsByTagName( 'option' );
 		
@@ -291,13 +298,9 @@ class TextareaValidator extends InputValidator
 		
 	}
 	
-	protected function setValue( DOMNode $props )
+	public function setValue( DOMNode $props )
 	{
-		if ( $props->hasAttribute('value') )
-			$this->value = $props->getAttribute('value');
-		
-		if ( is_null( $this->value ) )
-			$this->value = $props->nodeValue;
+		$this->value = $props->nodeValue;
 	}
 	
 }

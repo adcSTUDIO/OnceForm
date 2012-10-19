@@ -39,6 +39,7 @@ class InputValidatorTest extends UnitTestCase
 
 		// Should be a valid field, because there is a value.
 		$this->assertTrue( $validator->validate() );
+		$this->assertTrue( $validator->isValid );
 	}
 
 	public function test_empty_validator()
@@ -47,4 +48,23 @@ class InputValidatorTest extends UnitTestCase
 
 		$this->assertNull( $validator->validate() );
 	}
+
+	public function test_validation_with_an_error()
+	{
+		$onceform = new OnceForm();
+		$onceform->parse_form( '<form action="./" method="post">
+			<input type="text" name="test" id="test" required>
+		</form>' );
+
+		$node = $onceform->doc->getElementById( 'test' );
+
+		$validator = new InputValidator( $node );
+
+		// Should not be valid
+		$this->assertFalse( $validator->validate() );
+		
+		// Should be one error here (and only one).
+		$this->assertEqual( 1, count( $validator->errors ) );
+	}
+
 }
