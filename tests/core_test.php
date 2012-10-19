@@ -28,36 +28,6 @@ class CoreTest extends UnitTestCase
 		$this->assertEqual( $this->form_html, $onceform->toString() );
 	}
 
-	function test_data_defaults()
-	{
-		$onceform = new OnceForm();
-
-		$onceform->parse_form(
-			'<form action="./" method="post">
-				<input type="text" value="start value" name="test">
-			</form>'
-		);
-
-		$data = $onceform->get_request();
-		$onceform->resolve_request( $data );
-
-		$this->assertEqual( $onceform->data['test'], 'start value' );
-	}
-
-	/*function test_data_request()
-	{
-		$onceform = new OnceForm();
-
-		$onceform->parse_form(
-			'<form action="./" method="post">
-				<input type="text"</form>'
-		)
-
-		$onceform->resolve_request( array(
-
-		))
-	}*/
-
 }
 ?>
 <?php function the_form() { ?>

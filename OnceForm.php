@@ -141,7 +141,7 @@ class OnceForm
 	 * filter the request data (such as removing slashes in WordPress).
 	 * @param $data A reference to the array of request data.
 	 */
-	public function resolve_request( &$data )
+	public function resolve_request( $data )
 	{
 		// If the $data array is empty, nothing was sent to the server,
 		// so we aren't doing a postback.

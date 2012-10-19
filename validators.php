@@ -47,25 +47,56 @@ class InputValidator
 	{
 		if ( !is_null( $props ) )
 		{
-			if ( $props->hasAttribute('name') )
-				$this->name = $props->getAttribute('name');
-			
-			$this->setValue( $props );
-			
-			if ( $props->hasAttribute('required') )
-				$this->required = true;
+			$this->setNode( $props );
+
+			$this->validate();
 		}
 	}
+
+	/**
+	 * Sets validator from DOMNode form element.
+	 * @param DOMNode $node A DOMNode representing the HTML5 form 
+	 * element to validate.
+	 */
+	public function setNode( DOMNode $props )
+	{
+		if ( $props->hasAttribute('name') )
+			$this->name = $props->getAttribute('name');
+		
+		$this->setValue( $props );
+		
+		if ( $props->hasAttribute('required') )
+			$this->required = true;
+	}
 	
+	/**
+	 * Validates the current validator settings. By default, only
+	 * an empty value property is invalid. A NULL property value
+	 * caused validate to return NULL.
+	 * Also sets the isValid property.
+	 * 
+	 * @return Boolean|NULL If the value is null, returns 
+	 * NULL, otherwize returns true or false representing the 
+	 * validity of the state.
+	 */
 	public function validate()
 	{
+		if ( is_null( $this->value ) )
+			return NULL;
+
 		if ( $this->required && empty( $this->value ) )
 			$this->errors[] = "required field is empty";
 		
 		return $this->isValid = empty( $this->errors );
 	}
 	
-	public function setValue( DOMNode $props )
+	/**
+	 * Sets the value property. By default this is the value attribute
+	 * of a DOMNode object. setValue should be overidden in child 
+	 * classes when needed (select and textarea for example).
+	 * @param DOMNode $props The DOMNode of the input to be validated.
+	 */
+	protected function setValue( DOMNode $props )
 	{
 		if ( $props->hasAttribute('value') )
 			$this->value = $props->getAttribute('value');
@@ -225,7 +256,7 @@ class SelectValidator extends InputValidator
 			$this->setValue( $props );
 	}
 	
-	public function setValue( DOMNode $props )
+	protected function setValue( DOMNode $props )
 	{
 		$options = $props->getElementsByTagName( 'option' );
 		
@@ -260,7 +291,7 @@ class TextareaValidator extends InputValidator
 		
 	}
 	
-	public function setValue( DOMNode $props )
+	protected function setValue( DOMNode $props )
 	{
 		if ( $props->hasAttribute('value') )
 			$this->value = $props->getAttribute('value');
