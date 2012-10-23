@@ -111,9 +111,9 @@ class OnceForm
 		<meta http-equiv="content-type" content="text/html; charset='.$encoding.'">
 		</head><body>' . $html . '</body></html>' );
 		
-		$form = $this->doc->getElementsByTagName( 'form' );
+		$body = $this->doc->getElementsByTagName( 'body' );
 		
-		$this->form = $form->item( 0 );
+		$this->form = $body->item( 0 )->firstChild;
 	}
 	
 	/**
