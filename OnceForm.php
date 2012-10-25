@@ -197,9 +197,11 @@ class OnceForm
 		{
 			$name = $select->getAttribute('name');
 			$options = $select->getElementsByTagName( "option" );
+			
 			// in case nothing is marked selected by default
 			if ( $options->length > 0 )
 			{
+				$option = $options->item( 0 );
 				if ( $option->hasAttribute('value') )
 					$data[ $name ] = $option->getAttribute('value');
 				else
@@ -232,9 +234,27 @@ class OnceForm
 	 * sets the form value props to the request data.
 	 * @param the request dat to filter.
 	 */
-	public function set_request_data( $data )
+	public function set_request_data( array $data )
 	{
 		$form = $this->form;
+		
+		// First get the default data.
+		// :TODO: Optimize this - we really only need a list of items with name attribute
+		$default_data = $this->get_default_data();
+		
+		// If the $data array is empty, nothing was sent to the server,
+		// so we aren't doing a postback. 
+		if ( !empty( $data ) )
+		{
+			foreach( $data as $key => $value)
+			{
+				if ( !array_key_exists( $key, $default_data ) )
+					unset( $data[$key] );
+			}
+
+			// Mix the request data with the default data, and kill extra keys.
+			$data = array_merge( $default_data, $data );
+		}
 		
 		// get inputs
 		$inputs = array();
@@ -264,7 +284,7 @@ class OnceForm
 		return $data;
 	}
 	
-	private function set_inputs( $inputs, $data )
+	private function set_inputs( array &$inputs, array &$data )
 	{
 		// Every field might be skipped for various reasons
 		// so we'll normalize the request data.
@@ -324,7 +344,7 @@ class OnceForm
 		}
 	}
 	
-	private function set_selects( $selects, $data )
+	private function set_selects( array &$selects, array &$data )
 	{
 		// sets select box defaults to submitted values
 		// This has the side effect of sanitizing the input data against the 
@@ -359,7 +379,7 @@ class OnceForm
 		}
 	}
 	
-	private function set_textareas( $textareas, $data )
+	private function set_textareas( array &$textareas, array &$data )
 	{
 		// sets default textarea content
 		foreach( $textareas as $textarea )
