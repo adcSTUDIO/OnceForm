@@ -163,17 +163,67 @@ class OnceForm
 	{
 		$form = $this->form;
 		
-		$inputs = $form->getElementsByTagName('input');
-		
 		$data = array();
 		
-		foreach ( $inputs as $input ) {
-			switch( $input->getAttribute('type') ) {
-				default:
+		$inputs = $form->getElementsByTagName('input');
+		foreach ( $inputs as $input )
+		{
+			switch( $input->getAttribute('type') )
+			{
+				case 'submit':
+				break;
+				case 'email':
+				case 'hidden':
+				case 'text':
 					$data[ $input->getAttribute('name') ] = $input->getAttribute('value');
+				break;
+				case 'radio':
+				case 'checkbox':
+					// :TODO:
+				break;
 			}
 		}
+
+		$textareas = $form->getElementsByTagName( 'textarea' );
+		foreach ( $textareas as $textarea )
+		{
+			$data[ $textarea->getAttribute('name') ] =
+				( $value = $textarea->nodeValue ) ?
+					$value : '';
+		}
 		
+		$selects = $form->getElementsByTagName( 'select' );
+		foreach( $selects as $select )
+		{
+			$name = $select->getAttribute('name');
+			$options = $select->getElementsByTagName( "option" );
+			// in case nothing is marked selected by default
+			if ( $options->length > 0 )
+			{
+				if ( $option->hasAttribute('value') )
+					$data[ $name ] = $option->getAttribute('value');
+				else
+					$data[ $name ] = $option->nodeValue;
+			}
+			else {
+				$data[ $name ] = '';
+			}
+
+			// search for default selected
+			foreach( $options as $option )
+			{
+				// unset the default
+				if ( $option->hasAttribute( 'selected' ) )
+				{
+					// get the value - it's either the value prop, or the innertext.
+					if ( $option->hasAttribute('value') )
+						$data[ $name ] = $option->getAttribute('value');
+					else
+						$data[ $name ] = $option->nodeValue;
+				}
+			}
+		}
+
 		return $data;
 	}
 	
