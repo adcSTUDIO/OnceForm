@@ -109,7 +109,7 @@ class OnceForm
 		// Make DOMDocument use the right encoding.
 		$this->doc->loadHTML( '<html><head>
 		<meta http-equiv="content-type" content="text/html; charset='.$encoding.'">
-		</head><body>' . trim($html) . '</body></html>' );
+		</head><body>' . $html . '</body></html>' );
 		
 		$body = $this->doc->getElementsByTagName( 'body' );
 		
