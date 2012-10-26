@@ -228,6 +228,23 @@ class OnceForm
 
 		return $data;
 	}
+
+	/**
+	 * Gets the names of the fields in an array.
+	 * @return array The names of the fields.
+	 */
+	public function get_field_names()
+	{
+		$xpath = new DOMXpath($this->doc);
+		$elms = $xpath->query('//input[@name]|//select[@name]|//textarea[@name]');
+
+		$names = array();
+		foreach( $elms as $elm ) {
+			$names[] = $elm->getAttribute('name');
+		}
+
+		return $names;
+	}
 	
 	/**
 	 * Normalizes the request data (polyfills anything missing) and 
@@ -236,25 +253,23 @@ class OnceForm
 	 */
 	public function set_request_data( array $data )
 	{
+		if ( empty( $data ) )
+			return;
+
 		$form = $this->form;
 		
 		// First get the default data.
-		// :TODO: Optimize this - we really only need a list of items with name attribute
-		$default_data = $this->get_default_data();
+		$field_names = $this->get_field_names();
 		
-		// If the $data array is empty, nothing was sent to the server,
 		// so we aren't doing a postback. 
-		if ( !empty( $data ) )
+		foreach( $data as $key => $value )
 		{
-			foreach( $data as $key => $value)
-			{
-				if ( !array_key_exists( $key, $default_data ) )
-					unset( $data[$key] );
-			}
-
-			// Mix the request data with the default data, and kill extra keys.
-			$data = array_merge( $default_data, $data );
+			if ( !in_array( $key, $field_names ) )
+				unset( $data[$key] );
 		}
+
+		// Mix the request data with the default data, and kill extra keys.
+		$data = array_merge( $this->data, $data );
 		
 		// get inputs
 		$inputs = array();
