@@ -8,8 +8,6 @@ class WP_OnceForm extends OnceForm
 	
 	public function __construct( $form_func = NULL, $validator = NULL, $action = -1 )
 	{
-		parent::__construct();
-		
 		if ( !is_null( $form_func ) )
 		{
 			$this->add_form_func( $form_func );
