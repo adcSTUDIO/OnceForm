@@ -348,14 +348,8 @@ class OnceForm
 					// set value prop to request value
 					if ( isset( $data[ $name ] ) )
 						$input->setAttribute( 'value', $data[ $name ] );
-					// or set request value to elem.value prop,
-					// ... actually, if nothing was sent, set to blank.
-					// this is important for required fields to validate.
-					/*else {
-						if ( $input->hasAttribute('value') )
-						$data[ $name ] = $input->getAttribute('value');
-					}*/
-					// or default to empty
+					// Empty or missing request data should be treated as
+					// empty strings.
 					else
 						$data[ $name ] = '';
 				break;
@@ -416,8 +410,7 @@ class OnceForm
 					$this->doc->createTextNode( $data[ $name ] )
 				);
 			}
-			else if ( $value = $textarea->nodeValue )
-				$data[ $name ] = $value;
+			// missing request data should be treated as empty.
 			else
 				$data[ $name ] = '';
 		}
