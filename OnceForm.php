@@ -37,12 +37,12 @@ class OnceForm
 	public $isValid = false;
 	public $validators = array();
 	public $data = array();
-	
+
 	public $form;
 	public $doc;
-	
+
 	protected $user_validator;
-	
+
 	public function __toString() {
 		return $this->doc->saveHTML( $this->form );
 	}
@@ -50,11 +50,11 @@ class OnceForm
 	public function toString() {
 		return $this->__toString();
 	}
-	
+
 	/**
 	 * Creates a OnceForm.
-	 * 
-	 * @param function $form_func A function set up to output (echo) an 
+	 *
+	 * @param function $form_func A function set up to output (echo) an
 	 * HTML5 to the user. This function's output will be captured to an
 	 * output buffer. Note: If a form func is passed to the constructor,
 	 * the OnceForm will automatically check and validate the request.
@@ -67,24 +67,24 @@ class OnceForm
 				$this->add_form_func( $form_func );
 			elseif ( is_string( $form_func ) )
 				$this->parse_form( $form_func );
-			
+
 			$this->user_validator = $validator;
-			
+
 			// get the request data
 			$data = $this->get_request();
-			
+
 			// verify, and set this new data
 			$this->resolve_request( $data );
-			
+
 			if ( $this->isRequest )
 				$this->isValid = $this->validate();
 		}
 	}
-	
+
 	/**
 	 * Add a form function to the OnceForm.
-	 * 
-	 * @param function $func A function setup to output (echo) an 
+	 *
+	 * @param function $func A function setup to output (echo) an
 	 * HTML5 to the user. This function's output will be captured to an
 	 * output buffer.
 	 */
@@ -92,10 +92,10 @@ class OnceForm
 	{
 		ob_start();
 		call_user_func( $func );
-		
+
 		$this->parse_form( ob_get_clean() );
 	}
-	
+
 	/**
 	 * Set the form to process from an HTML string.
 	 *
@@ -110,12 +110,12 @@ class OnceForm
 		$this->doc->loadHTML( '<html><head>
 		<meta http-equiv="content-type" content="text/html; charset='.$encoding.'">
 		</head><body>' . trim( $html ) . '</body></html>' );
-		
+
 		$body = $this->doc->getElementsByTagName( 'body' );
-		
+
 		$this->form = $body->item( 0 )->firstChild;
 	}
-	
+
 	/**
 	 * Checks the request object, to see if a request has been made, and sets
 	 * the form elements' value props to the submitted data. If a form func
@@ -125,19 +125,19 @@ class OnceForm
 	public function get_request()
 	{
 		$form = $this->form;
-		
+
 		if ( 'POST' == strtoupper( $form->getAttribute('method') ) )
 			$data = $_POST;
 		else
 			// the default `method` if none specified is GET
 			$data = $_GET;
-		
+
 		if ( !empty( $data ) )
 			$this->isRequest = true;
-		
+
 		return $data;
 	}
-	
+
 	/**
 	 * Resolves the request data, either sets the form elements, or gets defaults.
 	 * This was a specifically divided from get_request to allow subclasses to
@@ -154,7 +154,7 @@ class OnceForm
 			// This checks the form values have return values, and polyfills if not.
 			$this->data = $this->set_request_data( $data );
 	}
-	
+
 	/**
 	 * Builds (polyfills) the $data property. Useful when you want to get
 	 * the default data when there has been no reqeust.
@@ -162,9 +162,9 @@ class OnceForm
 	protected function get_default_data()
 	{
 		$form = $this->form;
-		
+
 		$data = array();
-		
+
 		$inputs = $form->getElementsByTagName('input');
 		foreach ( $inputs as $input )
 		{
@@ -191,13 +191,13 @@ class OnceForm
 				( $value = $textarea->nodeValue ) ?
 					$value : '';
 		}
-		
+
 		$selects = $form->getElementsByTagName( 'select' );
 		foreach( $selects as $select )
 		{
 			$name = $select->getAttribute('name');
 			$options = $select->getElementsByTagName( "option" );
-			
+
 			// in case nothing is marked selected by default
 			if ( $options->length > 0 )
 			{
@@ -245,9 +245,9 @@ class OnceForm
 
 		return $names;
 	}
-	
+
 	/**
-	 * Normalizes the request data (polyfills anything missing) and 
+	 * Normalizes the request data (polyfills anything missing) and
 	 * sets the form value props to the request data.
 	 * @param the request dat to filter.
 	 */
@@ -257,11 +257,11 @@ class OnceForm
 			return;
 
 		$form = $this->form;
-		
+
 		// First get the default data.
 		$field_names = $this->get_field_names();
-		
-		// so we aren't doing a postback. 
+
+		// so we aren't doing a postback.
 		foreach( $data as $key => $value )
 		{
 			if ( !in_array( $key, $field_names ) )
@@ -270,7 +270,7 @@ class OnceForm
 
 		// Mix the request data with the default data, and kill extra keys.
 		$data = array_merge( $this->data, $data );
-		
+
 		// get inputs
 		$inputs = array();
 		$nodes = $form->getElementsByTagName('input');
@@ -279,7 +279,7 @@ class OnceForm
 				$inputs[] = $node;
 		}
 		$this->set_inputs( $inputs, $data );
-		
+
 		$selects = array();
 		$nodes = $form->getElementsByTagName('select');
 		foreach( $nodes as $node ) {
@@ -298,7 +298,7 @@ class OnceForm
 
 		return $data;
 	}
-	
+
 	private function set_inputs( array &$inputs, array &$data )
 	{
 		// Every field might be skipped for various reasons
@@ -313,7 +313,7 @@ class OnceForm
 				// special exit for items that shouldn't be set, like submit
 				case 'submit':
 				break;
-				
+
 				// These are a bit special, they may need the checked prop added
 				case 'radio':
 				case 'checkbox':
@@ -331,15 +331,15 @@ class OnceForm
 					else {
 						// poly fill to prevent php errors
 						$data[ $name ] = '';
-						
+
 						// the box is unchecked
 						$input->removeAttribute( 'checked' );
 					}
-					
+
 					// :TODO: Figure out if more polyfilling is required for sets
-					
+
 				break;
-				
+
 				// These may be blank if the disabled flag is set
 				case 'email':
 				case 'text':
@@ -358,29 +358,29 @@ class OnceForm
 			}
 		}
 	}
-	
+
 	private function set_selects( array &$selects, array &$data )
 	{
 		// sets select box defaults to submitted values
-		// This has the side effect of sanitizing the input data against the 
+		// This has the side effect of sanitizing the input data against the
 		// specified options list.
 		foreach( $selects as $select )
 		{
 			$name = $select->getAttribute('name');
 
 			$options = $select->getElementsByTagName( "option" );
-			
+
 			// if there is no sbumitted value, don't mess with the select box
 			if ( !isset( $data[ $name ] ) )
 				continue;
-			
+
 			// find the posted option, and unset the default
 			foreach( $options as $option )
 			{
 				// unset the default
 				if ( $option->hasAttribute( 'selected' ) )
 					$option->removeAttribute( 'selected' );
-				
+
 				// get the value - it's either the value prop, or the innertext.
 				if ( $option->hasAttribute('value') )
 					$value = $option->getAttribute('value');
@@ -393,7 +393,7 @@ class OnceForm
 			}
 		}
 	}
-	
+
 	private function set_textareas( array &$textareas, array &$data )
 	{
 		// sets default textarea content
@@ -406,7 +406,7 @@ class OnceForm
 				// remove all child nodes (including text nodes)
 				foreach ( $textarea->childNodes as $node )
 					$textarea->removeChild( $node );
-				
+
 				// create and append a new text node
 				$textarea->appendChild(
 					$this->doc->createTextNode( $data[ $name ] )
@@ -418,18 +418,18 @@ class OnceForm
 				$data[ $name ] = '';
 		}
 	}
-	
+
 	public function add_validator( $name, $validator ) {
 		$this->validators[ $name ] = $validator;
 	}
-	
+
 	public function set_required( $name, $required = true )
 	{
 		$form = $this->form;
-		
+
 		$xpath = new DOMXpath($this->doc);
 		$elms = $xpath->query('//input[@name]|//select[@name]|//textarea[@name]');
-		
+
 		foreach ( $elms as $elm )
 		{
 			if ( $name != $elm->getAttribute( 'name' ) )
@@ -440,61 +440,61 @@ class OnceForm
 				$elm->removeAttribute( 'required' );
 		}
 	}
-	
+
 	/**
-	 * Validates the OnceForm against the data passed. This method will 
+	 * Validates the OnceForm against the data passed. This method will
 	 * create the validator objects and store them in $this->validators
 	 * by name. To override a validator for a specific input element
 	 * add it to $this->validators before calling validate().
 	 *
-	 * @param array $data The request data (or other) to validate 
+	 * @param array $data The request data (or other) to validate
 	 * against the OnceForm.
-	 * @return boolean Whether or not the data is valid by the 
+	 * @return boolean Whether or not the data is valid by the
 	 * rules of the OnceForm.
 	 */
 	public function validate( $data = NULL )
 	{
 		if ( is_null( $data ) )
 			$data = $this->data;
-		
+
 		$valid = true;
-		
+
 		if ( $this->user_validator )
 		{
 			$errors = call_user_func( $this->user_validator, $data, $this );
-			
+
 			$validator = (object)array(
 				'errors' => $errors,
 				'name' => 'user validator',
 				'isValid' => false
 			);
-			
+
 			if ( empty( $errors ) )
 				$validator->isValid = true;
 			else
 				$valid = false;
-			
+
 			$this->validators[] = $validator;
 		}
-		
+
 		$xpath = new DOMXpath($this->doc);
-		
+
 		if ( !$this->validate_inputs( $xpath->query('//input[@name]'), $data ) )
 			$valid = false;
-		
+
 		if ( !$this->validate_selects( $xpath->query('//select[@name]'), $data ) )
 			$valid = false;
-		
+
 		if ( !$this->validate_textareas( $xpath->query('//textarea[@name]'), $data ) )
 			$valid = false;
-		
-		return $valid;	
+
+		return $valid;
 	}
-	
+
 	private function validate_inputs( $inputs, $data )
 	{
 		$valid = true;
-		
+
 		foreach( $inputs as $input )
 		{
 			// Don't override provided validators
@@ -505,7 +505,7 @@ class OnceForm
 					case 'email':
 						$validator = new EmailValidator( $input );
 					break;
-					
+
 					case 'radio':
 					case 'checkbox':
 					case 'text':
@@ -514,7 +514,7 @@ class OnceForm
 						$validator = new InputValidator( $input );
 					break;
 				}
-				
+
 				$this->validators[ $input->getAttribute('name') ] = $validator;
 			}
 			else
@@ -522,25 +522,25 @@ class OnceForm
 				$validator = $this->validators[ $input->getAttribute('name') ];
 				$validator->setValue( $input );
 			}
-			
+
 			// do the actual validation
 			if ( !$validator->validate() )
 				$valid = false;
 		}
-		
+
 		return $valid;
 	}
-	
+
 	private function validate_selects( $selects, $data )
 	{
 		$valid = true;
-		
+
 		foreach( $selects as $select )
 		{
 			if ( !isset( $this->validators[ $select->getAttribute('name') ] ) )
 			{
 				$validator = new SelectValidator( $select );
-				
+
 				$this->validators[ $select->getAttribute('name') ] = $validator;
 			}
 			else
@@ -548,24 +548,24 @@ class OnceForm
 				$validator = $this->validators[ $select->getAttribute('name') ];
 				$validator->setValue( $select );
 			}
-			
+
 			if ( !$validator->validate() )
 				$valid = false;
 		}
-		
+
 		return $valid;
 	}
-	
+
 	private function validate_textareas( $textareas, $data )
 	{
 		$valid = true;
-		
+
 		foreach( $textareas as $textarea )
 		{
 			if ( !isset( $this->validators[ $textarea->getAttribute('name') ] ) )
 			{
 				$validator = new TextareaValidator( $textarea );
-				
+
 				$this->validators[ $textarea->getAttribute('name') ] = $validator;
 			}
 			else
@@ -573,17 +573,17 @@ class OnceForm
 				$validator = $this->validators[ $input->name ];
 				$validator->setValue( $textarea );
 			}
-			
+
 			if ( !$validator->validate() )
 				$valid = false;
 		}
-		
+
 		return $valid;
 	}
-	
+
 	public function set_validator( /* callable */ $func )
 	{
 		$this->user_validator = $func;
 	}
-	
+
 }
