@@ -346,11 +346,15 @@ class OnceForm
 				case 'hidden':
 				default:
 					// set value prop to request value
-					if ( isset( $data[ $name] ) )
-						$input->setAttribute('value', $data[ $name ] );
-					// or set request value to elem.value prop
-					else if ( $input->hasAttribute('value') )
+					if ( isset( $data[ $name ] ) )
+						$input->setAttribute( 'value', $data[ $name ] );
+					// or set request value to elem.value prop,
+					// ... actually, if nothing was sent, set to blank.
+					// this is important for required fields to validate.
+					/*else {
+						if ( $input->hasAttribute('value') )
 						$data[ $name ] = $input->getAttribute('value');
+					}*/
 					// or default to empty
 					else
 						$data[ $name ] = '';
