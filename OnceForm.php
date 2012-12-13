@@ -483,19 +483,19 @@ class OnceForm
 
 		$xpath = new DOMXpath($this->doc);
 
-		if ( !$this->validate_inputs( $xpath->query('//input[@name]'), $data ) )
+		if ( !$this->validate_inputs( $xpath->query('//input[@name]') ) )
 			$valid = false;
 
-		if ( !$this->validate_selects( $xpath->query('//select[@name]'), $data ) )
+		if ( !$this->validate_selects( $xpath->query('//select[@name]') ) )
 			$valid = false;
 
-		if ( !$this->validate_textareas( $xpath->query('//textarea[@name]'), $data ) )
+		if ( !$this->validate_textareas( $xpath->query('//textarea[@name]') ) )
 			$valid = false;
 
 		return $valid;
 	}
 
-	private function validate_inputs( $inputs, $data )
+	private function validate_inputs( $inputs )
 	{
 		$valid = true;
 
@@ -535,7 +535,7 @@ class OnceForm
 		return $valid;
 	}
 
-	private function validate_selects( $selects, $data )
+	private function validate_selects( $selects )
 	{
 		$valid = true;
 
@@ -560,7 +560,7 @@ class OnceForm
 		return $valid;
 	}
 
-	private function validate_textareas( $textareas, $data )
+	private function validate_textareas( $textareas )
 	{
 		$valid = true;
 
