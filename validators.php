@@ -22,7 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 /**
  * InputValidatr - validates a basic input type="text" and serves as
  * the base for other validators.
- * 
+ *
  * @author Kevin Newman <Kevin@adcSTUDIO.com>
  * @package The OnceForm
  * @copyright (C) 2012 adcSTUDIO LLC
@@ -33,11 +33,11 @@ class InputValidator
 	public $name;
 	public $value;
 	public $required;
-	
+
 	public $isValid;
-	
+
 	public $errors = array();
-	
+
 	/**
 	 * Validates Input fields. Validates text fields, and is
 	 * a base for other input type validators.
@@ -55,28 +55,28 @@ class InputValidator
 
 	/**
 	 * Sets validator from DOMNode form element.
-	 * @param DOMNode $node A DOMNode representing the HTML5 form 
+	 * @param DOMNode $node A DOMNode representing the HTML5 form
 	 * element to validate.
 	 */
 	public function setNode( DOMNode $props )
 	{
 		if ( $props->hasAttribute('name') )
 			$this->name = $props->getAttribute('name');
-		
+
 		$this->setValue( $props );
-		
+
 		if ( $props->hasAttribute('required') )
 			$this->required = true;
 	}
-	
+
 	/**
 	 * Validates the current validator settings. By default, only
 	 * an empty value property is invalid. A NULL property value
 	 * caused validate to return NULL.
 	 * Also sets the isValid property.
-	 * 
-	 * @return Boolean|NULL If the value is null, returns 
-	 * NULL, otherwize returns true or false representing the 
+	 *
+	 * @return Boolean|NULL If the value is null, returns
+	 * NULL, otherwize returns true or false representing the
 	 * validity of the state.
 	 */
 	public function validate()
@@ -89,13 +89,13 @@ class InputValidator
 
 		if ( $this->required && empty( $this->value ) )
 			$this->errors[] = "required field is empty";
-		
+
 		return $this->isValid = empty( $this->errors );
 	}
-	
+
 	/**
 	 * Sets the value property. By default this is the value attribute
-	 * of a DOMNode object. setValue should be overidden in child 
+	 * of a DOMNode object. setValue should be overidden in child
 	 * classes when needed (select and textarea for example).
 	 * @param DOMNode $props The DOMNode of the input to be validated.
 	 */
@@ -108,7 +108,7 @@ class InputValidator
 
 		$this->validate();
 	}
-	
+
 }
 
 class NumbericValidator extends InputValidator
@@ -116,47 +116,47 @@ class NumbericValidator extends InputValidator
 	public $step;
 	public $max;
 	public $min;
-	
+
 	public function __construct( DOMNode $props = NULL )
 	{
 		parent::__construct( $props );
-		
+
 		if ( !is_null( $props ) )
 		{
 			if ( $props->hasAttribute('min') )
 				$this->min = $props->getAttribute('min');
-			
+
 			if ( $props->hasAttribute('max') )
 				$this->max = $props->getAttribute('max');
-			
+
 			if ( $props->hasAttribute('step') )
 				$this->step = $props->getAttribute('step');
 		}
 	}
-	
+
 	public function validate()
 	{
 		parent::validate();
-		
+
 		/*switch ( $node->type )
 		{
 			case 'number':
 			case 'range':
 				if ( !is_numeric( $node->value ) )
 					$this->errors[] = 'not a number';
-				
+
 				if ( !empty( $this->step ) &&
 						!self::step( $node->value, $this->step ) )
 					$this->errors[] = 'not a valid step of ' . $this->step;
-				
+
 				if ( !empty( $this->max ) &&
 						!self::max( $node->value, $this->max ) )
 					$this->errors[] = 'not below maximum of ' . $this->max;
-				
+
 				if ( !emtpy( $this->min ) &&
 						!self::min( $node->value, $this->min ) )
 					$this->errors[] = 'not above minimum of '. $this->min;
-				
+
 				break;
 			case 'date':
 			case 'datetime':
@@ -166,20 +166,20 @@ class NumbericValidator extends InputValidator
 			case 'week':
 				break;
 		}*/
-		
+
 		return $this->isValid = empty( $this->errors );
 	}
-	
+
 	static public function step( $value, $step )
 	{
 		return $value % $step !== 0;
 	}
-	
+
 	static public function max( $value, $max )
 	{
 		return $value <= $max;
 	}
-	
+
 	static public function min( $value, $min )
 	{
 		return $value >= $min;
@@ -189,26 +189,26 @@ class NumbericValidator extends InputValidator
 class PatternValidator extends InputValidator
 {
 	public $pattern;
-	
+
 	public function __construct( DOMNode $props = NULL )
 	{
 		parent::__construct( $props );
-		
+
 		if ( !is_null( $props ) )
 		{
 			if ( $props->hasAttribute('pattern') )
 				$this->pattern = $props->getAttribute('pattern');
 		}
 	}
-	
+
 	public function validate()
 	{
 		parent::validate();
-		
+
 		if ( !empty($this->pattern) &&
 				!preg_match( $this->$pattern, $this->value ) )
 			$this->errors[] = 'not a valid value';
-		
+
 		return $this->isValid = empty( $this->errors );
 	}
 }
@@ -219,12 +219,12 @@ class PatternValidator extends InputValidator
 class EmailValidator extends PatternValidator
 {
 	static private $email_pattern = "/[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i";
-	
+
 	public function __construct( DOMNode $props = NULL )
 	{
 		parent::__construct( $props );
 	}
-	
+
 	/**
 	 * Validates under two conditions:
 	 * <ul>
@@ -236,12 +236,12 @@ class EmailValidator extends PatternValidator
 	public function validate()
 	{
 		parent::validate();
-		
-		if ( $this->required || strlen( $this->value ) > 0 ) { 
+
+		if ( $this->required || strlen( $this->value ) > 0 ) {
 			if ( !preg_match( self::$email_pattern, $this->value ) )
 				$this->errors[] = 'not a valid email address';
 		}
-		
+
 		return $this->isValid = empty( $this->errors );
 	}
 }
@@ -249,7 +249,7 @@ class EmailValidator extends PatternValidator
 /**
  * Validates Select fields.
  * @param stdObject|array The properties of the select box.
- * @param array The array of options to be checked. Can be array of 
+ * @param array The array of options to be checked. Can be array of
  * arrays, stdObjects or a Ganon Node. must have keys: value, text.
  * The selected option should contain the key: selected.
  */
@@ -258,15 +258,15 @@ class SelectValidator extends InputValidator
 	public function __construct( DOMNode $props = NULL )
 	{
 		parent::__construct( $props );
-		
+
 		if ( !is_null( $props ) )
 			$this->setValue( $props );
 	}
-	
+
 	public function setValue( DOMNode $props )
 	{
 		$options = $props->getElementsByTagName( 'option' );
-		
+
 		// get the value from the options list
 		foreach( $options as $option )
 		{
@@ -276,15 +276,15 @@ class SelectValidator extends InputValidator
 				// get the value - it's either the value prop, or the text/innertext.
 				if ( $option->hasAttribute('value') )
 					$this->value = $option->getAttribute('value');
-				
+
 				if ( is_null( $this->value ) )
 					$this->value = $option->nodeValue;
-				
+
 				break;
 			}
 		}
 	}
-	
+
 }
 
 class TextareaValidator extends InputValidator
@@ -292,15 +292,15 @@ class TextareaValidator extends InputValidator
 	public function __construct( DOMNode $props = NULL )
 	{
 		parent::__construct( $props );
-		
+
 		if ( !is_null( $props ) )
 			$this->setValue( $props );
-		
+
 	}
-	
+
 	public function setValue( DOMNode $props )
 	{
 		$this->value = $props->nodeValue;
 	}
-	
+
 }
