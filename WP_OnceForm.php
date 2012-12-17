@@ -33,7 +33,10 @@ class WP_OnceForm extends OnceForm
 	{
 		if ( !is_null( $form_func ) )
 		{
-			$this->add_form_func( $form_func );
+			if ( is_callable( $form_func ) )
+				$this->add_form_func( $form_func );
+			elseif ( is_string( $form_func ) )
+				$this->parse_form( $form_func );
 
 			$this->insert_nonce( $action );
 
