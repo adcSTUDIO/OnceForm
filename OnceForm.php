@@ -317,7 +317,7 @@ class OnceForm
 				// These are a bit special, they may need the checked prop added
 				case 'radio':
 				case 'checkbox':
-					if ( isset( $data[ $name ] ) )
+					if ( ! empty( $data[ $name ] ) )
 					{
 						// if the request data contains the element name
 						// and is a checkbox, then it's checked
