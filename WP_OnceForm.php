@@ -33,7 +33,10 @@ class WP_OnceForm extends OnceForm
 	{
 		if ( !is_null( $form_func ) )
 		{
-			$this->add_form_func( $form_func );
+			if ( is_callable( $form_func ) )
+				$this->add_form_func( $form_func );
+			elseif ( is_string( $form_func ) )
+				$this->parse_form( $form_func );
 
 			$this->insert_nonce( $action );
 
@@ -65,10 +68,18 @@ class WP_OnceForm extends OnceForm
 		$nonce = wp_nonce_field( $action, $name, $referer, false );
 
 		// parse into nodes, so we can manipulate
-		$nonce_doc = new DOMDocument( $nonce );
+		$encoding = mb_detect_encoding( $nonce );
+		$doc = new DOMDocument( '', $encoding );
+
+		// Make DOMDocument use the right encoding.
+		$doc->loadHTML( '<html><head>
+		<meta http-equiv="content-type" content="text/html; charset='.$encoding.'">
+		</head><body>' . trim( $nonce ) . '</body></html>' );
+
+		//$nonce_doc = new DOMDocument( $nonce );
 
 		// grab the new elements
-		$xpath = new DOMXPath( $nonce_doc );
+		$xpath = new DOMXPath( $doc );
 		$fields = $xpath->query('//input[@name]');
 
 		foreach( $fields as $field )
@@ -82,6 +93,7 @@ class WP_OnceForm extends OnceForm
 				$this->add_validator( $fname, new NonceValidator( $field, $action ) );
 
 			// finally, add the elements
+			$field = $this->doc->importNode( $field );
 			$this->form->appendChild( $field );
 		}
 	}

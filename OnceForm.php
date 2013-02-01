@@ -38,6 +38,8 @@ class OnceForm
 	public $validators = array();
 	public $data = array();
 
+	public $form_html;
+
 	public $form;
 	public $doc;
 
@@ -103,6 +105,8 @@ class OnceForm
 	 */
 	public function parse_form( $html )
 	{
+		$this->form_html = $html;
+
 		$encoding = mb_detect_encoding( $html );
 		$this->doc = new DOMDocument( '', $encoding );
 
