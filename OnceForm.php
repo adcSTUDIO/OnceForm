@@ -201,18 +201,27 @@ class OnceForm
 		{
 			$name = $select->getAttribute('name');
 			$options = $select->getElementsByTagName( "option" );
+			$multiple = $select->hasAttribute('multiple');
 
 			// in case nothing is marked selected by default
 			if ( $options->length > 0 )
 			{
 				$option = $options->item( 0 );
 				if ( $option->hasAttribute('value') )
-					$data[ $name ] = $option->getAttribute('value');
+					$value = $option->getAttribute('value');
 				else
-					$data[ $name ] = $option->nodeValue;
+					$value = $option->nodeValue;
 			}
 			else {
-				$data[ $name ] = '';
+				$value = '';
+			}
+
+			if ( $multiple ) {
+				$data[ $name ] = array();
+				$data[ $name ][] = $value;
+			}
+			else {
+				$data[ $name ] = $value;
 			}
 
 			// search for default selected
@@ -223,10 +232,14 @@ class OnceForm
 				{
 					// get the value - it's either the value prop, or the innertext.
 					if ( $option->hasAttribute('value') )
-						$data[ $name ] = $option->getAttribute('value');
+						$value = $option->getAttribute('value');
 					else
-						$data[ $name ] = $option->nodeValue;
+						$value = $option->nodeValue;
 				}
+				if ( $multiple )
+					$data[ $name ][] = $value;
+				else
+					$data[ $name ] = $value;
 			}
 		}
 
@@ -268,7 +281,8 @@ class OnceForm
 		// so we aren't doing a postback.
 		foreach( $data as $key => $value )
 		{
-			if ( !in_array( $key, $field_names ) )
+			// :HACK: to support multi select boxes - needs better support
+			if ( !in_array( $key, $field_names ) && !in_array( $key.'[]', $field_names) )
 				unset( $data[$key] );
 		}
 
@@ -372,8 +386,23 @@ class OnceForm
 
 			$options = $select->getElementsByTagName( "option" );
 
+			// handle for select data
+			if ( isset( $data[ $name ] ) )
+				$sdata = $data[ $name ];
+
+			// :HACK: needed to support mutliple selects
+			// This really should have proper [] support.
+			elseif ( $select->hasAttribute('multiple') &&
+				'[]' == substr( $name, -2) )
+			{
+				if ( isset($data[ substr( $name, 0, strlen( $name ) - 2 ) ]) )
+					$sdata = $data[ substr( $name, 0, strlen( $name ) - 2 ) ];
+				else
+					continue;
+			}
+
 			// if there is no sbumitted value, don't mess with the select box
-			if ( !isset( $data[ $name ] ) )
+			if ( !isset( $sdata ) )
 				continue;
 
 			// find the posted option, and unset the default
@@ -390,7 +419,11 @@ class OnceForm
 					$value = $option->nodeValue;
 
 				// set the new selected item
-				if ( $value == $data[ $name ] )
+				if (
+					( is_array( $sdata ) &&
+						in_array( $value, $sdata ) ) ||
+					( $value == $sdata )
+				)
 					$option->setAttribute( 'selected', 'selected' );
 			}
 		}
