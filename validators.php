@@ -267,6 +267,10 @@ class SelectValidator extends InputValidator
 	{
 		$options = $props->getElementsByTagName( 'option' );
 
+		$multiple = $props->hasAttribute('multiple');
+		if ($multiple)
+			$this->value = array();
+
 		// get the value from the options list
 		foreach( $options as $option )
 		{
@@ -275,12 +279,15 @@ class SelectValidator extends InputValidator
 			{
 				// get the value - it's either the value prop, or the text/innertext.
 				if ( $option->hasAttribute('value') )
-					$this->value = $option->getAttribute('value');
+					$value = $option->getAttribute('value');
 
 				if ( is_null( $this->value ) )
-					$this->value = $option->nodeValue;
+					$value = $option->nodeValue;
 
-				break;
+				if ( $multiple )
+					$this->value[] = $value;
+				else
+					$this->value = $value;
 			}
 		}
 	}
