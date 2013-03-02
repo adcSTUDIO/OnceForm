@@ -33,7 +33,7 @@ class SubFieldType extends FieldType
 interface iOnceField {
 	public function default_value();
 	public function value( $value = NULL );
-	public function name( $name = NULL );
+	public function name();
 	public function validator( $validator = NULL );
 	public function required( $required = NULL );
 }
@@ -50,7 +50,7 @@ abstract class OnceField implements iOnceField
 		return $this->node->getAttribute( 'name' );
 	}
 
-	protected $validator
+	protected $validator;
 	public function validator( $validator = NULL ) {
 		if ( !is_null( $validator ) )
 			$this->validator = $validator;

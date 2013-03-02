@@ -19,9 +19,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-interface IOnceValidator {
-
+interface iOnceValidator {
+	public function setNode( DOMNode $props );
+	public function validate();
+	public function setValue( DOMNode $props );
 }
+
 /**
  * InputValidatr - validates a basic input type="text" and serves as
  * the base for other validators.
@@ -31,7 +34,7 @@ interface IOnceValidator {
  * @copyright (C) 2012 adcSTUDIO LLC
  * @license GNU/GPL, see license.txt
  */
-class InputValidator implements IOnceValidator
+class InputValidator implements iOnceValidator
 {
 	public $name;
 	public $value;
