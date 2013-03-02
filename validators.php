@@ -19,6 +19,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+interface IOnceValidator {
+
+}
 /**
  * InputValidatr - validates a basic input type="text" and serves as
  * the base for other validators.
@@ -28,7 +31,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
  * @copyright (C) 2012 adcSTUDIO LLC
  * @license GNU/GPL, see license.txt
  */
-class InputValidator
+class InputValidator implements IOnceValidator
 {
 	public $name;
 	public $value;
@@ -111,7 +114,7 @@ class InputValidator
 
 }
 
-class NumbericValidator extends InputValidator
+class NumericValidator extends InputValidator
 {
 	public $step;
 	public $max;

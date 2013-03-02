@@ -1,5 +1,6 @@
 <?php
 include 'validators.php';
+include 'OnceFields.php';
 
 /*
 The OnceForm - Write once HTML5 forms processing for PHP.
@@ -620,4 +621,14 @@ class OnceForm
 		$this->user_validator = $func;
 	}
 
+	static protected $fieldTypes = array();
+	static public function addFieldType( FieldType $field )
+	{
+		self::$fieldTypes[] = $field;
+	}
+
 }
+OnceForm::addFieldType( new SubFieldType( 'input', 'text', 'InputValidator' ) );
+OnceForm::addFieldType( new SubFieldType( 'input', 'number', 'NumericValidator' ) );
+OnceForm::addFieldType( new FieldType( 'select', 'SelectValidator' ) );
+OnceForm::addFieldType( new FieldType( 'textarea', 'TextareaValidator' ) );
