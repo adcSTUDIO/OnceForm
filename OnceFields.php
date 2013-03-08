@@ -2,8 +2,8 @@
 class FieldType
 {
 	public $tag_name;
-	public $field;
-	public $validator;
+	public $field_class;
+	public $validator_class;
 	public $enumerable;
 	public $xpath_query;
 
@@ -11,8 +11,8 @@ class FieldType
 		$validator_class, $enumerable = true, $xpath_query = NULL )
 	{
 		$this->tag_name = $tag_name;
-		$this->field = $field_class;
-		$this->validator = $validator_class;
+		$this->field_class = $field_class;
+		$this->validator_class = $validator_class;
 		$this->enumerable = $enumerable;
 		if ( is_null( $xpath_query ) )
 			$this->xpath_query = "//{$tag_name}[@name]";
@@ -28,8 +28,8 @@ class SubFieldType extends FieldType
 	public function __construct( $tag_name, $type, $field_class,
 		$validator_class, $enumerable = true )
 	{
-		parent::__construct( $tag_name, $validator_class, $enumerable,
-			"//{$tag_name}[@type='$type' and @name]"
+		parent::__construct( $tag_name, $field_class, $validator_class,
+			$enumerable, "//{$tag_name}[@type='$type' and @name]"
 		);
 		$this->type = $type;
 	}
@@ -38,8 +38,9 @@ interface iOnceField {
 	public function default_value();
 	public function value( $value = NULL );
 	public function name();
-	public function validator( $validator = NULL );
+	public function validator();
 	public function required( $required = NULL );
+	public function validate();
 }
 abstract class OnceField implements iOnceField
 {
@@ -55,9 +56,11 @@ abstract class OnceField implements iOnceField
 	}
 
 	protected $validator;
-	public function validator( $validator = NULL ) {
-		if ( !is_null( $validator ) )
-			$this->validator = $validator;
+	public function validator() {
+		if ( is_null( $this->validator ) ) {
+			$r = new ReflectionClass( $fieldType->field );
+			$this->validator = $r->newInstanceArgs( array( $this->node ) );
+		}
 		return $this->validator;
 	}
 
@@ -85,8 +88,15 @@ abstract class OnceField implements iOnceField
 		if ( !is_null( $node ) )
 			$this->node = $node;
 		$this->default_value = $this->value();
-		// :TODO: extract properties values
 		return $this->node;
+	}
+
+	public function validate() {
+		return $this->validator()->validate();
+	}
+
+	public function validation() {
+		return $this->validator()->errors;
 	}
 }
 class InputField extends OnceField
@@ -102,8 +112,7 @@ class TextareaField extends InputField
 {
 	public function value( $value = NULL )
 	{
-		if ( !is_null( $value ) )
-		{
+		if ( !is_null( $value ) ) {
 			// remove all child nodes (including text nodes)
 			foreach ( $this->node->childNodes as $node )
 				$this->node->removeChild( $node );
@@ -151,6 +160,7 @@ class SelectField extends OnceField
 
 		return $value;
 	}
+
 	/**
 	 * Gets the value of an option, which can be either a value attribute
 	 * or the actual contents (nodeValue) of the optino.

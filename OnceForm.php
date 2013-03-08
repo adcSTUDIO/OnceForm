@@ -153,14 +153,14 @@ class OnceForm
 		$this->fields = array();
 
 		// loop and extract each
-		foreach ( self::$fieldTypes as $fieldType )
+		foreach ( self::$fieldTypes as $field_type )
 		{
-			$nodes = $xpath->query($fieldType->xpath_query);
+			$nodes = $xpath->query($field_type->xpath_query);
 			foreach( $nodes as $node )
 			{
-				$r = new ReflectionClass( $fieldType->field );
+				$r = new ReflectionClass( $field_type->field_class );
 				$this->fields[ $node->getAttribute('name') ] =
-					$r->newInstanceArgs( array( $node ), $fieldType );
+					$r->newInstanceArgs( array( $node, $field_type ) );
 			}
 		}
 	}
@@ -169,7 +169,7 @@ class OnceForm
 	 * Checks the PHP GP objects, to see if a request has been made.
 	 * Called automatically in init.
 	 */
-	protected function get_request_data()
+	public function get_request_data()
 	{
 		$form = $this->form;
 
@@ -179,6 +179,7 @@ class OnceForm
 			// the default `method` if none specified is GET
 			$data = $_GET;
 
+		// :TODO: This is strangly placed. Find a better home.
 		if ( !empty( $data ) )
 			$this->isRequest = true;
 
@@ -288,111 +289,16 @@ class OnceForm
 			$this->validators[] = $validator;
 		}
 
-		$xpath = new DOMXpath($this->doc);
-
-		if ( !$this->validate_inputs( $xpath->query('//input[@name]') ) )
-			$valid = false;
-
-		if ( !$this->validate_selects( $xpath->query('//select[@name]') ) )
-			$valid = false;
-
-		if ( !$this->validate_textareas( $xpath->query('//textarea[@name]') ) )
-			$valid = false;
-
-		return $valid;
-	}
-
-	private function validate_inputs( $inputs )
-	{
-		$valid = true;
-
-		foreach( $inputs as $input )
-		{
-			// Don't override provided validators
-			if ( !isset( $this->validators[ $input->getAttribute('name') ] ) )
-			{
-				switch( $input->getAttribute('type') )
-				{
-					case 'email':
-						$validator = new EmailValidator( $input );
-					break;
-
-					case 'radio':
-					case 'checkbox':
-					case 'text':
-					case 'hidden':
-					default:
-						$validator = new InputValidator( $input );
-					break;
-				}
-
-				$this->validators[ $input->getAttribute('name') ] = $validator;
-			}
-			else
-			{
-				$validator = $this->validators[ $input->getAttribute('name') ];
-				$validator->setValue( $input );
-			}
-
-			// do the actual validation
-			if ( !$validator->validate() )
+		foreach( $this->fields as $field ) {
+			if ( ! $field->validate() )
 				$valid = false;
 		}
 
 		return $valid;
 	}
 
-	private function validate_selects( $selects )
-	{
-		$valid = true;
 
-		foreach( $selects as $select )
-		{
-			if ( !isset( $this->validators[ $select->getAttribute('name') ] ) )
-			{
-				$validator = new SelectValidator( $select );
-
-				$this->validators[ $select->getAttribute('name') ] = $validator;
-			}
-			else
-			{
-				$validator = $this->validators[ $select->getAttribute('name') ];
-				$validator->setValue( $select );
-			}
-
-			if ( !$validator->validate() )
-				$valid = false;
-		}
-
-		return $valid;
-	}
-
-	private function validate_textareas( $textareas )
-	{
-		$valid = true;
-
-		foreach( $textareas as $textarea )
-		{
-			if ( !isset( $this->validators[ $textarea->getAttribute('name') ] ) )
-			{
-				$validator = new TextareaValidator( $textarea );
-
-				$this->validators[ $textarea->getAttribute('name') ] = $validator;
-			}
-			else
-			{
-				$validator = $this->validators[ $input->name ];
-				$validator->setValue( $textarea );
-			}
-
-			if ( !$validator->validate() )
-				$valid = false;
-		}
-
-		return $valid;
-	}
-
-	public function set_validator( /* callable */ $func )
+	public function set_user_validator( /* callable */ $func )
 	{
 		$this->user_validator = $func;
 	}
@@ -404,7 +310,7 @@ class OnceForm
 	}
 
 }
-OnceForm::addFieldType( new SubFieldType( 'input', 'text', 'InputField', 'InputValidator' ) );
-OnceForm::addFieldType( new SubFieldType( 'input', 'number', 'NumberField', 'NumericValidator' ) );
-OnceForm::addFieldType( new FieldType( 'select', 'SelectField', 'SelectValidator' ) );
-OnceForm::addFieldType( new FieldType( 'textarea', 'TextareaField', 'TextareaValidator' ) );
+OnceForm::addFieldType( new SubFieldType('input', 'text', 'InputField', 'InputValidator') );
+//OnceForm::addFieldType( new FieldType('input', 'number', 'NumberField', 'NumericValidator') );
+OnceForm::addFieldType( new FieldType('select', 'SelectField', 'SelectValidator') );
+OnceForm::addFieldType( new FieldType('textarea', 'TextareaField', 'TextareaValidator') );
