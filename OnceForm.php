@@ -40,9 +40,13 @@ class OnceForm
 	public $data = array();
 
 	public $form_html;
+	public $form_func;
 
 	public $form;
 	public $doc;
+
+	public $xpath;
+	public $fields = array();
 
 	protected $user_validator;
 
@@ -64,39 +68,52 @@ class OnceForm
 	 */
 	public function __construct( $form_func = NULL, $validator = NULL )
 	{
+		if ( is_callable( $form_func ) )
+			$this->form_func = $form_func;
+		else
+			$this->form_html = $form_func;
+
+		$this->user_validator = $validator;
+
 		if ( !is_null( $form_func ) )
-		{
-			if ( is_callable( $form_func ) )
-				$this->add_form_func( $form_func );
-			elseif ( is_string( $form_func ) )
-				$this->parse_form( $form_func );
-
-			$this->user_validator = $validator;
-
-			// get the request data
-			$data = $this->get_request();
-
-			// verify, and set this new data
-			$this->resolve_request( $data );
-
-			if ( $this->isRequest )
-				$this->isValid = $this->validate();
-		}
+			$this->init();
 	}
 
 	/**
-	 * Add a form function to the OnceForm.
+	 * Sets up the OnceForm. a form func or form html should be set
+	 * before calling init (usually through the constructor).
+	 * @return void
+	 */
+	public function init()
+	{
+		if ( is_callable( $this->form_func ) )
+			$this->capture_form( $this->form_func );
+
+		$this->parse_form();
+		$this->extract_fields();
+
+		// get the request data
+		$data = $this->get_request_data();
+
+		// verify, and set this new data
+		$this->set_data( $data );
+
+		if ( $this->isRequest )
+			$this->isValid = $this->validate();
+	}
+
+	/**
+	 * Runs the form func, and captures the resulting html.
 	 *
 	 * @param function $func A function setup to output (echo) an
 	 * HTML5 to the user. This function's output will be captured to an
 	 * output buffer.
 	 */
-	public function add_form_func( $func )
+	protected function capture_form( $func )
 	{
 		ob_start();
 		call_user_func( $func );
-
-		$this->parse_form( ob_get_clean() );
+		$this->form_html = ob_get_clean();
 	}
 
 	/**
@@ -104,30 +121,55 @@ class OnceForm
 	 *
 	 * @param string $html The html5 form to be automatically processed.
 	 */
-	public function parse_form( $html )
+	public function parse_form( $html = NULL )
 	{
-		$this->form_html = $html;
+		if ( !is_null( $html ) )
+			$this->form_html = $html;
+		$html = $this->form_html;
 
+		// extract encoding from the html string
 		$encoding = mb_detect_encoding( $html );
+
 		$this->doc = new DOMDocument( '', $encoding );
 
-		// Make DOMDocument use the right encoding.
+		// DOMDocument needs a complete document, along with a charset encoding.
 		$this->doc->loadHTML( '<html><head>
-		<meta http-equiv="content-type" content="text/html; charset='.$encoding.'">
-		</head><body>' . trim( $html ) . '</body></html>' );
+		<meta http-equiv="content-type" content="text/html; charset='.
+		$encoding.'"></head><body>' . trim( $html ) . '</body></html>' );
 
+		// grab a reference to the form element
 		$body = $this->doc->getElementsByTagName( 'body' );
-
 		$this->form = $body->item( 0 )->firstChild;
 	}
 
 	/**
-	 * Checks the request object, to see if a request has been made, and sets
-	 * the form elements' value props to the submitted data. If a form func
-	 * was passed to the constructor, this will be automatically called on
-	 * construction. Otherwise, it must be called manually.
+	 * Extracts the fields from the form based on the registered
+	 * field types.
 	 */
-	public function get_request()
+	public function extract_fields()
+	{
+		// setup xpath for individual element extraction.
+		$xpath = $this->xpath = new DOMXpath($this->doc);
+		$this->fields = array();
+
+		// loop and extract each
+		foreach ( self::$fieldTypes as $fieldType )
+		{
+			$nodes = $xpath->query($fieldType->xpath_query);
+			foreach( $nodes as $node )
+			{
+				$r = new ReflectionClass( $fieldType->field );
+				$this->fields[ $node->getAttribute('name') ] =
+					$r->newInstanceArgs( array( $node ), $fieldType );
+			}
+		}
+	}
+
+	/**
+	 * Checks the PHP GP objects, to see if a request has been made.
+	 * Called automatically in init.
+	 */
+	protected function get_request_data()
 	{
 		$form = $this->form;
 
@@ -144,104 +186,44 @@ class OnceForm
 	}
 
 	/**
-	 * Resolves the request data, either sets the form elements, or gets defaults.
-	 * This was a specifically divided from get_request to allow subclasses to
-	 * filter the request data (such as removing slashes in WordPress).
-	 * @param $data A reference to the array of request data.
+	 * Starts with the form's default values, and mixes in the $data.
+	 * In this way, the data is "polyfilled" so you don't have to worry
+	 * about doing isset on every key.
+	 * @param array $data A reference to the array of request data.
 	 */
-	public function resolve_request( $data )
+	public function set_data( array $data )
 	{
-		// If the $data array is empty, nothing was sent to the server,
-		// so we aren't doing a postback.
-		if ( empty( $data ) )
-			$this->data = $this->get_default_data();
-		else
-			// This checks the form values have return values, and polyfills if not.
-			$this->data = $this->set_request_data( $data );
+		// First get the default data.
+		$default_data = $this->get_default_data();
+
+		// filters out any fields that aren't in the onceform, or
+		// are not enumerable (:TODO:).
+		foreach( $data as $key => $value ) {
+			if ( !array_key_exists( $key, $default_data ) )
+				unset( $data[$key] );
+		}
+
+		// Mix the request data with the default data, and kill extra keys.
+		$data = array_merge( $default_data, $data );
+
+		// set the fields to the new data
+		foreach( $this->fields as $field ) {
+			$field->value( $data[ $field->name() ] );
+		}
+
+		return $this->data = $data;
 	}
 
 	/**
-	 * Builds (polyfills) the $data property. Useful when you want to get
-	 * the default data when there has been no reqeust.
+	 * Gets the default values (specified in the HTML) of the OnceForm.
+	 * @return  array The default data.
 	 */
-	protected function get_default_data()
+	public function get_default_data()
 	{
-		$form = $this->form;
-
 		$data = array();
 
-		$inputs = $form->getElementsByTagName('input');
-		foreach ( $inputs as $input )
-		{
-			switch( $input->getAttribute('type') )
-			{
-				case 'submit':
-				break;
-				case 'email':
-				case 'hidden':
-				case 'text':
-					$data[ $input->getAttribute('name') ] = $input->getAttribute('value');
-				break;
-				case 'radio':
-				case 'checkbox':
-					// :TODO:
-				break;
-			}
-		}
-
-		$textareas = $form->getElementsByTagName( 'textarea' );
-		foreach ( $textareas as $textarea )
-		{
-			$data[ $textarea->getAttribute('name') ] =
-				( $value = $textarea->nodeValue ) ?
-					$value : '';
-		}
-
-		$selects = $form->getElementsByTagName( 'select' );
-		foreach( $selects as $select )
-		{
-			$name = $select->getAttribute('name');
-			$options = $select->getElementsByTagName( "option" );
-			$multiple = $select->hasAttribute('multiple');
-
-			// in case nothing is marked selected by default
-			if ( $options->length > 0 )
-			{
-				$option = $options->item( 0 );
-				if ( $option->hasAttribute('value') )
-					$value = $option->getAttribute('value');
-				else
-					$value = $option->nodeValue;
-			}
-			else {
-				$value = '';
-			}
-
-			if ( $multiple ) {
-				$data[ $name ] = array();
-				$data[ $name ][] = $value;
-			}
-			else {
-				$data[ $name ] = $value;
-			}
-
-			// search for default selected
-			foreach( $options as $option )
-			{
-				// unset the default
-				if ( $option->hasAttribute( 'selected' ) )
-				{
-					// get the value - it's either the value prop, or the innertext.
-					if ( $option->hasAttribute('value') )
-						$value = $option->getAttribute('value');
-					else
-						$value = $option->nodeValue;
-				}
-				if ( $multiple )
-					$data[ $name ][] = $value;
-				else
-					$data[ $name ] = $value;
-			}
+		foreach( $this->fields as $field ) {
+			$data[ $field->name() ] = $field->default_value();
 		}
 
 		return $data;
@@ -253,227 +235,21 @@ class OnceForm
 	 */
 	public function get_field_names()
 	{
-		$xpath = new DOMXpath($this->doc);
-		$elms = $xpath->query('//input[@name]|//select[@name]|//textarea[@name]');
-
 		$names = array();
-		foreach( $elms as $elm ) {
-			$names[] = $elm->getAttribute('name');
+
+		foreach( $this->fields as $field ) {
+			$names[] = $field->name();
 		}
 
 		return $names;
-	}
-
-	/**
-	 * Normalizes the request data (polyfills anything missing) and
-	 * sets the form value props to the request data.
-	 * @param the request dat to filter.
-	 */
-	public function set_request_data( array $data )
-	{
-		if ( empty( $data ) )
-			return;
-
-		$form = $this->form;
-
-		// First get the default data.
-		$field_names = $this->get_field_names();
-
-		// so we aren't doing a postback.
-		foreach( $data as $key => $value )
-		{
-			// :HACK: to support multi select boxes - needs better support
-			if ( !in_array( $key, $field_names ) && !in_array( $key.'[]', $field_names) )
-				unset( $data[$key] );
-		}
-
-		// Mix the request data with the default data, and kill extra keys.
-		$data = array_merge( $this->data, $data );
-
-		// get inputs
-		$inputs = array();
-		$nodes = $form->getElementsByTagName('input');
-		foreach( $nodes as $node ) {
-			if ( $node->hasAttribute( 'name' ) && $node->getAttribute( 'name' ) )
-				$inputs[] = $node;
-		}
-		$this->set_inputs( $inputs, $data );
-
-		$selects = array();
-		$nodes = $form->getElementsByTagName('select');
-		foreach( $nodes as $node ) {
-			if ( $node->hasAttribute( 'name' ) && $node->getAttribute( 'name' ) )
-				$selects[] = $node;
-		}
-		$this->set_selects( $selects, $data );
-
-		$textareas = array();
-		$nodes = $form->getElementsByTagName('textarea');
-		foreach( $nodes as $node ) {
-			if ( $node->hasAttribute( 'name' ) && $node->getAttribute( 'name' ) )
-				$textareas[] = $node;
-		}
-		$this->set_textareas( $textareas, $data );
-
-		return $data;
-	}
-
-	private function set_inputs( array &$inputs, array &$data )
-	{
-		// Every field might be skipped for various reasons
-		// so we'll normalize the request data.
-		foreach( $inputs as $input )
-		{
-			$name = $input->getAttribute('name');
-			$type = $input->getAttribute('type');
-
-			switch( $type )
-			{
-				// special exit for items that shouldn't be set, like submit
-				case 'submit':
-				break;
-
-				// These are a bit special, they may need the checked prop added
-				case 'radio':
-				case 'checkbox':
-					if ( ! empty( $data[ $name ] ) )
-					{
-						// if the request data contains the element name
-						// and is a checkbox, then it's checked
-						if ( 'checkbox' == $type ) {
-							$input->setAttribute( 'checked', 'checked' );
-						}
-						// radios are only marked "checked" if the value matches
-						else if ( 'radio' == $type && $input->getAttribute('value') == $data[ $name ] )
-							$input->setAttribute( 'checked', 'checked' );
-					}
-					else {
-						// poly fill to prevent php errors
-						$data[ $name ] = '';
-
-						// the box is unchecked
-						$input->removeAttribute( 'checked' );
-					}
-
-					// :TODO: Figure out if more polyfilling is required for sets
-
-				break;
-
-				// These may be blank if the disabled flag is set
-				case 'email':
-				case 'text':
-				case 'hidden':
-				default:
-					// set value prop to request value
-					if ( isset( $data[ $name ] ) )
-						$input->setAttribute( 'value', $data[ $name ] );
-					// Empty or missing request data should be treated as
-					// empty strings.
-					else
-						$data[ $name ] = '';
-				break;
-			}
-		}
-	}
-
-	private function set_selects( array &$selects, array &$data )
-	{
-		// sets select box defaults to submitted values
-		// This has the side effect of sanitizing the input data against the
-		// specified options list.
-		foreach( $selects as $select )
-		{
-			$name = $select->getAttribute('name');
-
-			$options = $select->getElementsByTagName( "option" );
-
-			// handle for select data
-			if ( isset( $data[ $name ] ) )
-				$sdata = $data[ $name ];
-
-			// :HACK: needed to support mutliple selects
-			// This really should have proper [] support.
-			elseif ( $select->hasAttribute('multiple') &&
-				'[]' == substr( $name, -2) )
-			{
-				if ( isset($data[ substr( $name, 0, strlen( $name ) - 2 ) ]) )
-					$sdata = $data[ substr( $name, 0, strlen( $name ) - 2 ) ];
-				else
-					continue;
-			}
-
-			// if there is no sbumitted value, don't mess with the select box
-			if ( !isset( $sdata ) )
-				continue;
-
-			// find the posted option, and unset the default
-			foreach( $options as $option )
-			{
-				// unset the default
-				if ( $option->hasAttribute( 'selected' ) )
-					$option->removeAttribute( 'selected' );
-
-				// get the value - it's either the value prop, or the innertext.
-				if ( $option->hasAttribute('value') )
-					$value = $option->getAttribute('value');
-				else
-					$value = $option->nodeValue;
-
-				// set the new selected item
-				if (
-					( is_array( $sdata ) &&
-						in_array( $value, $sdata ) ) ||
-					( $value == $sdata )
-				)
-					$option->setAttribute( 'selected', 'selected' );
-			}
-		}
-	}
-
-	private function set_textareas( array &$textareas, array &$data )
-	{
-		// sets default textarea content
-		foreach( $textareas as $textarea )
-		{
-			$name = $textarea->getAttribute('name');
-
-			if ( isset( $data[ $name ] ) )
-			{
-				// remove all child nodes (including text nodes)
-				foreach ( $textarea->childNodes as $node )
-					$textarea->removeChild( $node );
-
-				// create and append a new text node
-				$textarea->appendChild(
-					$this->doc->createTextNode( $data[ $name ] )
-				);
-			}
-			// missing request data should be treated as empty.
-			else
-				$data[ $name ] = '';
-		}
 	}
 
 	public function add_validator( $name, $validator ) {
 		$this->validators[ $name ] = $validator;
 	}
 
-	public function set_required( $name, $required = true )
-	{
-		$form = $this->form;
-
-		$xpath = new DOMXpath($this->doc);
-		$elms = $xpath->query('//input[@name]|//select[@name]|//textarea[@name]');
-
-		foreach ( $elms as $elm )
-		{
-			if ( $name != $elm->getAttribute( 'name' ) )
-				continue;
-			if ( $required )
-				$elm->setAttribute( 'required', 'required' );
-			else
-				$elm->removeAttribute( 'required' );
-		}
+	public function set_required( $name, $required = true ) {
+		$this->fields[ $name ]->required( $required );
 	}
 
 	/**
@@ -494,8 +270,8 @@ class OnceForm
 
 		$valid = true;
 
-		if ( $this->user_validator )
-		{
+		if ( $this->user_validator ) {
+
 			$errors = call_user_func( $this->user_validator, $data, $this );
 
 			$validator = (object)array(
@@ -628,7 +404,7 @@ class OnceForm
 	}
 
 }
-OnceForm::addFieldType( new SubFieldType( 'input', 'text', 'InputValidator' ) );
-OnceForm::addFieldType( new SubFieldType( 'input', 'number', 'NumericValidator' ) );
-OnceForm::addFieldType( new FieldType( 'select', 'SelectValidator' ) );
-OnceForm::addFieldType( new FieldType( 'textarea', 'TextareaValidator' ) );
+OnceForm::addFieldType( new SubFieldType( 'input', 'text', 'InputField', 'InputValidator' ) );
+OnceForm::addFieldType( new SubFieldType( 'input', 'number', 'NumberField', 'NumericValidator' ) );
+OnceForm::addFieldType( new FieldType( 'select', 'SelectField', 'SelectValidator' ) );
+OnceForm::addFieldType( new FieldType( 'textarea', 'TextareaField', 'TextareaValidator' ) );

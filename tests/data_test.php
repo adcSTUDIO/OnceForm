@@ -15,8 +15,8 @@ class DataTest extends UnitTestCase
 
 		$onceform->parse_form( $this->form_html );
 
-		$data = $onceform->get_request();
-		$onceform->resolve_request( $data );
+		//$data = $onceform->get_request();
+		$onceform->set_data( array( 'name' => 'start value' ) );
 
 		$this->assertEqual( $onceform->data['test'], 'start value' );
 	}
@@ -27,7 +27,7 @@ class DataTest extends UnitTestCase
 
 		$onceform->parse_form( $this->form_html );
 
-		$onceform->resolve_request( array(
+		$onceform->set_data( array(
 			'test'	=> 'changed value'
 		) );
 
