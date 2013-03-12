@@ -1,6 +1,6 @@
 <?php
-include 'validators.php';
-include 'OnceFields.php';
+require_once 'validators.php';
+require_once 'OnceFields.php';
 
 /*
 The OnceForm - Write once HTML5 forms processing for PHP.

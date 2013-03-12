@@ -41,6 +41,7 @@ interface iOnceField {
 	public function validator();
 	public function required( $required = NULL );
 	public function validate();
+	public function validation();
 }
 abstract class OnceField implements iOnceField
 {
@@ -52,7 +53,7 @@ abstract class OnceField implements iOnceField
 	abstract public function value( $value = NULL );
 
 	public function name() {
-		return $this->node->getAttribute( 'name' );
+		return $this->node->getAttribute('name');
 	}
 
 	protected $validator;
@@ -73,14 +74,12 @@ abstract class OnceField implements iOnceField
 			else
 				$this->node->removeAttribute($attr);
 		}
-		return $this->node->hasAttribute($attr);
+		return (bool)$this->node->hasAttribute($attr);
 	}
 
-	protected $field_type;
-	public function __construct( DOMNode $node = NULL, FieldType $field_type )
+	public function __construct( DOMNode $node = NULL )
 	{
 		$this->node( $node );
-		$this->field_type;
 	}
 
 	protected $node;
@@ -104,8 +103,8 @@ class InputField extends OnceField
 	public function value( $value = NULL )
 	{
 		if ( !is_null( $value ) )
-			$this->node->setAttribute( 'value', $value );
-		return $this->node->getAttribute( 'value' );
+			$this->node->setAttribute('value', $value );
+		return $this->node->getAttribute('value');
 	}
 }
 class TextareaField extends InputField
@@ -135,8 +134,8 @@ class SelectField extends OnceField
 	public function value( $value = NULL )
 	{
 		$options = $this->node->getElementsByTagName('option');
-		$values = array();
 
+		// :TODO: add support for array $value arg
 		if ( !is_null( $value ) ) {
 			foreach( $options as $option ) {
 				if ( $option->hasAttribute('selected') )
@@ -146,17 +145,20 @@ class SelectField extends OnceField
 			}
 		}
 
+		$values = array();
 		foreach( $options as $option ) {
 			if ( $option->hasAttribute('selected') )
 				$values[] = $this->get_option_value( $option );
 		}
 
+		// matches if nothing is selected - returns '' default value
 		if ( 0 == count($values) )
 			$value = '';
+		// only returns the single selected item
 		elseif ( 1 == count( $values ) )
-			$value = $value[0];
-		else
-			$value = $values;
+			$value = $values[0];
+		// if there is more than one, return an array
+		else $value = $values;
 
 		return $value;
 	}

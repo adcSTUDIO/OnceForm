@@ -19,21 +19,21 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-include '../OnceForm.php';
+require_once '../OnceForm.php';
 
-$form1 = new OnceForm( 'myForm' );
+$form = new OnceForm('my_form');
 
-if ( $form1->isRequest )
+/*if ( $form->isRequest )
 {
-	if ( $form1->isValid )
+	if ( $form->isValid )
 	{
 		// Do something with the data, or perform more complicated validation
-		$form1->data;
+		$form->data;
 	}
 	else {
 		// display an error somewhere
 	}
-}
+}*/
 ?>
 <!doctype html>
 <html>
@@ -52,7 +52,7 @@ submit invalid data to the server to demo the OnceForm.)</p></td>
 </tr>
 
 <tr><td>
-<?php function myform() { ?>
+<?php function my_form() { ?>
 <form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="post" name="form1">
 
 <p>
@@ -61,7 +61,7 @@ submit invalid data to the server to demo the OnceForm.)</p></td>
 <p>
 	<input type="email" name="designer_stuff" required placeholder="Enter your email address">
 </p>
-<p>
+<?php /* <p>
 	<input name="ckBox1" type="checkbox" id="ckBox1" value="test" required>
 	<label for="ckBox1">test 1</label>
 	<input name="ckBox2" type="checkbox" id="ckBox2" value="test">
@@ -86,53 +86,13 @@ submit invalid data to the server to demo the OnceForm.)</p></td>
 <p>
 	<label for="textTest">Enter some text</label><br>
 	<textarea id="textTest" name="textTest" required></textarea>
-</p>
+</p> */ ?>
 <p>
 	<input type="submit" value="Go!">
 </p>
 </form>
 <?php } ?>
-<?php echo $form1 ?>
-</td>
-<td>
-<form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="post" name="form1">
-
-<p>
-	<input type="text" name="user_email" placeholder="Enter your email address">
-</p>
-<p>
-	<input type="text" name="designer_stuff" placeholder="Enter your email address">
-</p>
-<p>
-	<input name="ckBox1" type="checkbox" id="ckBox1" value="test">
-	<label for="ckBox1">test 1</label>
-	<input name="ckBox2" type="checkbox" id="ckBox2" value="test">
-	<label for="ckBox2">test 2</label>
-</p>
-<p>
-	<input type="radio" name="rdSet" id="radio1" value="radio1">
-	<label for="radio1">test A</label>
-	<input type="radio" name="rdSet" id="radio2" value="radio2">
-	<label for="radio2">test B</label>
-</p>
-<p>
-	<label for="selectTest">Select Something</label>
-	<select name="selectTest" id="selectTest">
-		<option value="">Select Something</option>
-		<option value="1">One</option>
-		<option>Two</option>
-		<option value="3" selected>Three</option>
-		<option value="4">Four</option>
-	</select>
-</p>
-<p>
-	<label for="textTest">Enter some text</label><br>
-	<textarea id="textTest" name="textTest"></textarea>
-</p>
-<p>
-	<input type="submit" value="Go!">
-</p>
-</form>
+<?php echo $form ?>
 </td>
 </tr>
 </table>
