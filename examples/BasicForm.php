@@ -46,9 +46,6 @@ $form = new OnceForm('my_form');
 <table>
 <tr>
 <td valign="top"><p>This is a basic HTML5 form with validation.</p></td>
-<td valign="top"><p>This is the same form with no validation.<br>
-(Use this to sidestep client side HTML5 validation, and<br>
-submit invalid data to the server to demo the OnceForm.)</p></td>
 </tr>
 
 <tr><td>
@@ -56,10 +53,10 @@ submit invalid data to the server to demo the OnceForm.)</p></td>
 <form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="post" name="form1">
 
 <p>
-	<input type="email" name="user_email" placeholder="Enter your email address">
+	<input type="text" name="user_email" placeholder="Enter your email address">
 </p>
 <p>
-	<input type="email" name="designer_stuff" required placeholder="Enter your email address">
+	<input type="text" name="designer_stuff" required placeholder="Enter your email address">
 </p>
 <?php /* <p>
 	<input name="ckBox1" type="checkbox" id="ckBox1" value="test" required>
@@ -98,12 +95,12 @@ submit invalid data to the server to demo the OnceForm.)</p></td>
 </table>
 
 <pre>
-isRequest: <?php var_dump( $form1->isRequest ) ?>
-isValid: <?php var_dump( $form1->isValid ) ?>
+isRequest: <?php var_dump( $form->isRequest ) ?>
+isValid: <?php var_dump( $form->isValid ) ?>
 
-<?php print_r( $form1->validators ) ?>
+<?php print_r( $form->validators ) ?>
 
-<?php print_r( $form1->errors ) ?>
+<?php print_r( $form->errors ) ?>
 
 <?php print_r( $_POST ) ?>
 
