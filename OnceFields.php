@@ -57,9 +57,10 @@ abstract class OnceField implements iOnceField
 	}
 
 	protected $validator;
-	public function validator() {
+	public function validator()
+	{
 		if ( is_null( $this->validator ) ) {
-			$r = new ReflectionClass( $fieldType->field );
+			$r = new ReflectionClass( $this->field_type->validator_class );
 			$this->validator = $r->newInstanceArgs( array( $this->node ) );
 		}
 		return $this->validator;
@@ -77,13 +78,24 @@ abstract class OnceField implements iOnceField
 		return (bool)$this->node->hasAttribute($attr);
 	}
 
-	public function __construct( DOMNode $node = NULL )
+	public function __construct( DOMNode $node = NULL,
+								 FieldType $field_type = NULL )
 	{
 		$this->node( $node );
+		$this->field_type( $field_type );
+	}
+
+	protected $field_type;
+	public function field_type( FieldType $field_type = NULL )
+	{
+		if ( !is_null( $field_type ) )
+			$this->field_type = $field_type;
+		return $this->field_type;
 	}
 
 	protected $node;
-	public function node( DOMNode $node = NULL ) {
+	public function node( DOMNode $node = NULL )
+	{
 		if ( !is_null( $node ) )
 			$this->node = $node;
 		$this->default_value = $this->value();
@@ -151,7 +163,7 @@ class SelectField extends OnceField
 				$values[] = $this->get_option_value( $option );
 		}
 
-		// matches if nothing is selected - returns '' default value
+		// if nothing is selected return '' default value
 		if ( 0 == count($values) )
 			$value = '';
 		// only returns the single selected item
