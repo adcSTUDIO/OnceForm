@@ -123,17 +123,18 @@ class TextareaField extends InputField
 {
 	public function value( $value = NULL )
 	{
+		$node = $this->node;
 		if ( !is_null( $value ) ) {
 			// remove all child nodes (including text nodes)
-			foreach ( $this->node->childNodes as $node )
-				$this->node->removeChild( $node );
+			foreach ( $node->childNodes as $child )
+				$node->removeChild( $child );
 
 			// create and append a new text node
-			$textarea->appendChild(
-				$this->node->ownerDocument->createTextNode( $value )
+			$node->appendChild(
+				$node->ownerDocument->createTextNode( $value )
 			);
 		}
-		return ( $value = $this->node->nodeValue ) ? $value : '';
+		return ( $value = $node->nodeValue ) ? $value : '';
 	}
 }
 class SelectField extends OnceField
