@@ -58,7 +58,7 @@ $form = new OnceForm('my_form');
 <p>
 	<input type="text" name="designer_stuff" required placeholder="Enter your email address">
 </p>
-<?php /* <p>
+<p>
 	<input name="ckBox1" type="checkbox" id="ckBox1" value="test" required>
 	<label for="ckBox1">test 1</label>
 	<input name="ckBox2" type="checkbox" id="ckBox2" value="test">
@@ -83,9 +83,10 @@ $form = new OnceForm('my_form');
 <p>
 	<label for="textTest">Enter some text</label><br>
 	<textarea id="textTest" name="textTest" required></textarea>
-</p> */ ?>
+</p>
 <p>
-	<input type="submit" value="Go!">
+	<input type="submit" value="Submit - Test Client Validation"><br>
+	<input type="submit" value="Submit - Test OnceForm Validation" formnovalidate>
 </p>
 </form>
 <?php } ?>
