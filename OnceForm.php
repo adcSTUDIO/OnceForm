@@ -314,3 +314,4 @@ OnceForm::addFieldType( new SubFieldType('input', 'text', 'InputField', 'InputVa
 //OnceForm::addFieldType( new FieldType('input', 'number', 'NumberField', 'NumericValidator') );
 OnceForm::addFieldType( new FieldType('select', 'SelectField', 'SelectValidator') );
 OnceForm::addFieldType( new FieldType('textarea', 'TextareaField', 'TextareaValidator') );
+OnceForm::addFieldType( new SubFieldType('input', 'checkbox', 'CheckboxField', 'InputValidator') );

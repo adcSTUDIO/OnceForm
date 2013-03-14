@@ -189,3 +189,45 @@ class SelectField extends OnceField
 			: $option->nodeValue;
 	}
 }
+
+/**
+ * The Checkbox Field. This field
+ */
+class CheckboxField extends InputField
+{
+	protected $checked;
+	public function checked( $checked = NULL )
+	{
+		$node = $this->node;
+		if ( !is_null( $checked ) ) {
+			if ( $checked )
+				$node->setAttribute('checked', 'checked');
+			else
+				$node->removeAttribute('checked');
+		}
+		return $node->hasAttribute('checked');
+	}
+
+	/**
+	 * In order to simulate the way checkbox elements post to the server
+	 * to some extent, the value property cannot be changed here. This
+	 * property can only accept and return the value of the value
+	 * attribute, or an empty string if the checkbox is not checked.
+	 * If you must set or get the actual value of the value field, use
+	 * raw_value.
+	 * @param  string $value The value of the value attribute.
+	 * @return string        The value of the value attribute if check
+	 *                       or an empty string if unchecked.
+	 */
+	public function value( $value = NULL )
+	{
+		if ( !is_null( $value ) ) {
+			$this->checked( !empty( $value ) );
+		}
+		return ( $this->checked() )? parent::value( $value ): '';
+	}
+
+	public function raw_value( $value = NULL ) {
+		return parent::value( $value );
+	}
+}
