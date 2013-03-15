@@ -214,7 +214,9 @@ class CheckboxField extends InputField
 	 * property can only accept and return the value of the value
 	 * attribute, or an empty string if the checkbox is not checked.
 	 * If you must set or get the actual value of the value field, use
-	 * raw_value.
+	 * raw_value. Think of the value property of a OnceField as a
+	 * request_value property. It's meant to normalize the request
+	 * value, and not just to expose the value property of the DOMNode.
 	 * @param  string $value The value of the value attribute.
 	 * @return string        The value of the value attribute if check
 	 *                       or an empty string if unchecked.
@@ -224,7 +226,7 @@ class CheckboxField extends InputField
 		if ( !is_null( $value ) ) {
 			$this->checked( !empty( $value ) );
 		}
-		return ( $this->checked() )? parent::value( $value ): '';
+		return ( $this->checked() )? parent::value(): '';
 	}
 
 	public function raw_value( $value = NULL ) {
