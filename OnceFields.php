@@ -20,6 +20,18 @@ class FieldType
 			$this->xpath_query = $xpath_query;
 		$this->enumerable = $enumerable;
 	}
+
+	public function extract( DOMXpath $xpath )
+	{
+		$fields = array();
+		foreach( $xpath->query( $this->xpath_query ) as $node )
+		{
+			$r = new ReflectionClass( $this->field_class );
+			$fields[ $node->getAttribute('name') ] =
+				$r->newInstanceArgs( array( $node, $this ) );
+		}
+		return $fields;
+	}
 }
 class SubFieldType extends FieldType
 {
@@ -40,6 +52,7 @@ interface iOnceField {
 	public function name();
 	public function validator();
 	public function required( $required = NULL );
+	public function field_type( FieldType $field_type = NULL );
 	public function validate();
 	public function validation();
 }
@@ -231,5 +244,104 @@ class CheckboxField extends InputField
 
 	public function raw_value( $value = NULL ) {
 		return parent::value( $value );
+	}
+}
+
+class RadioSetFieldType extends SubFieldType
+{
+	public function __construct( $validator_class, $enumerable = true )
+	{
+		parent::__construct( 'input', 'radio', 'RadioSetFields',
+			$validator_class, $enumerable, "//input[@type='radio' and @name]"
+		);
+	}
+
+	public function extract( DOMXpath $xpath )
+	{
+		$fields = array();
+		// We need to loop through all named elements, just as we do for other
+		// field types...
+		foreach( $xpath->query( $this->xpath_query ) as $node )
+		{
+			$name = $node->getAttribute('name');
+
+			if ( !isset( $fields[ $name ] ) ) {
+				// but we need to make sure to send a list of all radios with
+				// the same name to RadioSetFields, rather than single nodes.
+				$fields[ $name ] = new RadioSetFields(
+				  $xpath->query( "//input[@type='radio' and @name='$name']" ),
+				$this );
+			}
+		}
+		return $fields;
+	}
+}
+class RadioSetFields extends Oncefield
+{
+	public function name()
+	{
+		$name = '';
+		if ( 0 < $this->nodes->length )
+			$name = $this->nodes->item(0)->getAttribute('name');
+		return $name;
+	}
+
+	public function required( $required = NULL )
+	{
+		if ( !is_null( $required ) ) {
+			if ( !$required )
+				foreach( $this->nodes as $node )
+					$node->removeAttribute('required');
+			else
+				foreach( $this->nodes as $node )
+					$node->setAttribute('required', 'required');
+		}
+		$required = false;
+		foreach( $this->node as $node )
+			if ( $node->hasAttribute('required') )
+				$required = true;
+		return $required;
+	}
+
+	public function __construct( DOMNodeList $nodes = NULL,
+								 FieldType $field_type = NULL )
+	{
+		$this->nodes( $nodes );
+		$this->field_type( $field_type );
+	}
+
+	protected $nodes;
+	public function nodes( DOMNodeList $nodes = NULL )
+	{
+		if ( !is_null( $nodes ) ) {
+			$this->nodes = $nodes;
+			$this->default_value = $this->value();
+			if ( 0 < $nodes->length ) {
+				$this->name = $nodes->item(0)->getAttribute('name');
+			}
+		}
+		return $nodes;
+	}
+
+	public function value( $value = NULL )
+	{
+		if ( !is_null( $value ) ) {
+			foreach( $this->nodes as $node )
+				$node->removeAttribute('checked');
+			foreach( $this->nodes as $node )
+				if ( $node->hasAttribute('value') &&
+						$value == $node->getAttribute('value') )
+					$node->setAttribute('checked', 'checked');
+		}
+
+		$value = '';
+		foreach( $this->nodes as $node ) {
+			if ( $node->hasAttribute('checked') ) {
+				$value = ( $node->hasAttribute('value') )
+					? $node->getAttribute('value') : '';
+				break;
+			}
+		}
+		return $value;
 	}
 }

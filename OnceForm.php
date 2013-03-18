@@ -153,15 +153,10 @@ class OnceForm
 		$this->fields = array();
 
 		// loop and extract each
-		foreach ( self::$fieldTypes as $field_type )
-		{
-			$nodes = $xpath->query($field_type->xpath_query);
-			foreach( $nodes as $node )
-			{
-				$r = new ReflectionClass( $field_type->field_class );
-				$this->fields[ $node->getAttribute('name') ] =
-					$r->newInstanceArgs( array( $node, $field_type ) );
-			}
+		foreach ( self::$fieldTypes as $field_type ) {
+			$this->fields = array_merge(
+				$this->fields, $field_type->extract( $xpath )
+			);
 		}
 	}
 
@@ -315,3 +310,4 @@ OnceForm::addFieldType( new SubFieldType('input', 'text', 'InputField', 'InputVa
 OnceForm::addFieldType( new FieldType('select', 'SelectField', 'SelectValidator') );
 OnceForm::addFieldType( new FieldType('textarea', 'TextareaField', 'TextareaValidator') );
 OnceForm::addFieldType( new SubFieldType('input', 'checkbox', 'CheckboxField', 'InputValidator') );
+OnceForm::addFieldType( new RadioSetFieldType('InputValidator') );
