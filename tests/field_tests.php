@@ -251,3 +251,59 @@ class CheckboxFieldTest extends UnitTestCase
 			value="default" required checked>
 	</form>';
 }
+
+class RadioSetFieldTest extends UnitTestCase
+{
+	protected $doc;
+	protected $field;
+
+	function setUp()
+	{
+		$encoding = mb_detect_encoding( $this->html );
+		$this->doc = new DOMDocument('', $encoding );
+		$this->doc->loadHTML('<html><head>
+			<meta http-equiv="content-type" content="text/html; charset=' .
+			$encoding . '"></head><body>' . $this->html . '</body></html>'
+		);
+		$fieldType = new RadioSetFieldType('InputValidator');
+		$nodes = $fieldType->extract( new DOMXPath($this->doc) );
+		$this->field = $nodes['test_01'];
+	}
+	function tearDown() {
+		$this->doc = null;
+		$this->field = null;
+	}
+
+	function test_field_default_value()
+	{
+		$this->assertEqual('default', $this->field->default_value() );
+	}
+
+	function test_field_required()
+	{
+		$field = $this->field;
+		$this->assertTrue( $field->required() );
+		$field->required( false );
+		$this->assertFalse( $field->required() );
+	}
+
+	function test_field_name()
+	{
+		$this->assertEqual('test_01', $this->field->name() );
+	}
+
+	function test_field_value()
+	{
+		$field = $this->field;
+		$value = $this->assertEqual('default', $field->value() );
+		$field->value('changed');
+		$this->assertEqual('changed', $field->value() );
+	}
+
+	protected $html = '<form action="./" method="post">
+		<input type="radio" id="test_field1" name="test_01"
+			value="default" required checked>
+		<input type="radio" id="test_field2" name="test_01"
+			value="changed" required>
+	</form>';
+}
