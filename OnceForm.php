@@ -267,7 +267,6 @@ class OnceForm
 		$valid = true;
 
 		if ( $this->user_validator ) {
-
 			$errors = call_user_func( $this->user_validator, $data, $this );
 
 			$validator = (object)array(
@@ -285,13 +284,13 @@ class OnceForm
 		}
 
 		foreach( $this->fields as $field ) {
-			if ( ! $field->validate() )
+			$this->validators[] = $field->validator();
+			if ( ! $field->validity() )
 				$valid = false;
 		}
 
 		return $valid;
 	}
-
 
 	public function set_user_validator( /* callable */ $func )
 	{

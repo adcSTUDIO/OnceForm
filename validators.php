@@ -20,9 +20,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 
 interface iOnceValidator {
-	public function setNode( DOMNode $props );
-	public function validate();
-	public function setValue( DOMNode $props );
+	public function field( iOnceField $field = NULL );
+	public function isValid();
+	public function errors();
 }
 
 /**
@@ -34,7 +34,55 @@ interface iOnceValidator {
  * @copyright (C) 2012 adcSTUDIO LLC
  * @license GNU/GPL, see license.txt
  */
-class InputValidator implements iOnceValidator
+class OnceValidator implements iOnceValidator
+{
+	protected $field;
+	public function field( iOnceField $field = NULL )
+	{
+		if ( !is_null( $field ) ) {
+			$this->field = $field;
+			$this->validate();
+		}
+		return $this->field;
+	}
+
+	protected $isValid;
+	public function isValid() {
+		return $this->isValid;
+	}
+
+	protected $errors;
+	public function errors() {
+		return $this->errors;
+	}
+
+	public function __construct( iOnceField $field = NULL ) {
+		$this->field( $field );
+	}
+
+	protected function validate()
+	{
+		// reset the error count when revalidating
+		$this->errors = array();
+
+		$field = $this->field;
+		if ( $field->required() && '' == $field->value() )
+			$this->errors[] = 'Required field *'.$field->name.'* is empty';
+
+		return $this->isValid = empty( $this->errors );
+	}
+}
+
+/**
+ * InputValidatr - validates a basic input type="text" and serves as
+ * the base for other validators.
+ *
+ * @author Kevin Newman <Kevin@adcSTUDIO.com>
+ * @package The OnceForm
+ * @copyright (C) 2012 adcSTUDIO LLC
+ * @license GNU/GPL, see license.txt
+ */
+class InputValidator
 {
 	public $name;
 	public $value;

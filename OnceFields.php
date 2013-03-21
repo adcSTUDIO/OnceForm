@@ -53,8 +53,7 @@ interface iOnceField {
 	public function validator();
 	public function required( $required = NULL );
 	public function field_type( FieldType $field_type = NULL );
-	public function validate();
-	public function validation();
+	public function validity();
 }
 abstract class OnceField implements iOnceField
 {
@@ -70,12 +69,16 @@ abstract class OnceField implements iOnceField
 	}
 
 	protected $validator;
-	public function validator()
+	public function validator( iOnceValidator $validator = NULL )
 	{
-		if ( is_null( $this->validator ) ) {
-			$r = new ReflectionClass( $this->field_type->validator_class );
-			$this->validator = $r->newInstanceArgs( array( $this->node ) );
-		}
+		if ( ! is_null( $validator ) )
+			$this->validator = $validator;
+		elseif ( $validator === false )
+			$this->validator = NULL;
+
+		if ( is_null( $this->validator ) )
+			$this->validator = new OnceValidator( $this );
+
 		return $this->validator;
 	}
 
@@ -115,12 +118,8 @@ abstract class OnceField implements iOnceField
 		return $this->node;
 	}
 
-	public function validate() {
-		return $this->validator()->validate();
-	}
-
-	public function validation() {
-		return $this->validator()->errors;
+	public function validity() {
+		return $this->validator()->isValid();
 	}
 }
 class InputField extends OnceField
@@ -276,7 +275,7 @@ class RadioSetFieldType extends SubFieldType
 		return $fields;
 	}
 }
-class RadioSetField extends Oncefield
+class RadioSetField extends OnceField
 {
 	public function name()
 	{
