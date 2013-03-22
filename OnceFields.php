@@ -8,7 +8,8 @@ class FieldType
 	public $xpath_query;
 
 	public function __construct( $tag_name, $field_class,
-		$validator_class, $enumerable = true, $xpath_query = NULL )
+		$validator_class = 'OnceValidator', $enumerable = true,
+		$xpath_query = NULL )
 	{
 		$this->tag_name = $tag_name;
 		$this->field_class = $field_class;
@@ -38,7 +39,7 @@ class SubFieldType extends FieldType
 	public $type;
 
 	public function __construct( $tag_name, $type, $field_class,
-		$validator_class, $enumerable = true )
+		$validator_class = 'OnceValidator', $enumerable = true )
 	{
 		parent::__construct( $tag_name, $field_class, $validator_class,
 			$enumerable, "//{$tag_name}[@type='$type' and @name]"
@@ -50,7 +51,7 @@ interface iOnceField {
 	public function default_value();
 	public function value( $value = NULL );
 	public function name();
-	public function validator();
+	public function validator( iOnceValidator $validator = NULL );
 	public function required( $required = NULL );
 	public function field_type( FieldType $field_type = NULL );
 	public function validity();
@@ -76,8 +77,14 @@ abstract class OnceField implements iOnceField
 		elseif ( $validator === false )
 			$this->validator = NULL;
 
-		if ( is_null( $this->validator ) )
-			$this->validator = new OnceValidator( $this );
+		if ( is_null( $this->validator ) ) {
+			if ( is_null( $this->field_type ) ) {
+				$this->validator = new OnceValidator( $this );
+			} else {
+				$r = new ReflectionClass( $this->field_type->validator_class );
+				$this->validator = $r->newInstanceArgs( array( $this ) );
+			}
+		}
 
 		return $this->validator;
 	}
@@ -248,7 +255,8 @@ class CheckboxField extends InputField
 
 class RadioSetFieldType extends SubFieldType
 {
-	public function __construct( $validator_class, $enumerable = true )
+	public function __construct( $validator_class = 'OnceValidator',
+	                             $enumerable = true )
 	{
 		parent::__construct( 'input', 'radio', 'RadioSetField',
 			$validator_class, $enumerable, "//input[@type='radio' and @name]"

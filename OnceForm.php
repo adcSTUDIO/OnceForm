@@ -304,9 +304,9 @@ class OnceForm
 	}
 
 }
-OnceForm::addFieldType( new SubFieldType('input', 'text', 'InputField', 'InputValidator') );
-//OnceForm::addFieldType( new FieldType('input', 'number', 'NumberField', 'NumericValidator') );
-OnceForm::addFieldType( new FieldType('select', 'SelectField', 'SelectValidator') );
-OnceForm::addFieldType( new FieldType('textarea', 'TextareaField', 'TextareaValidator') );
-OnceForm::addFieldType( new SubFieldType('input', 'checkbox', 'CheckboxField', 'InputValidator') );
-OnceForm::addFieldType( new RadioSetFieldType('InputValidator') );
+OnceForm::addFieldType( new SubFieldType('input', 'text', 'InputField') );
+//OnceForm::addFieldType( new FieldType('input', 'number', 'NumberField') );
+OnceForm::addFieldType( new FieldType('select', 'SelectField') );
+OnceForm::addFieldType( new FieldType('textarea', 'TextareaField') );
+OnceForm::addFieldType( new SubFieldType('input', 'checkbox', 'CheckboxField') );
+OnceForm::addFieldType( new RadioSetFieldType() );
