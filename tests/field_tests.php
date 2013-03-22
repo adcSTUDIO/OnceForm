@@ -35,10 +35,8 @@ class InputFieldTest extends UnitTestCase
 	{
 		$field = $this->field;
 		$this->assertTrue( $field->required() );
-		$this->assertTrue( $field->node()->hasAttribute('required') );
 		$field->required( false );
 		$this->assertFalse( $field->required() );
-		$this->assertFalse( $field->node()->hasAttribute('required') );
 	}
 
 	function test_field_name()
@@ -50,10 +48,8 @@ class InputFieldTest extends UnitTestCase
 	{
 		$field = $this->field;
 		$this->assertEqual('default', $field->value() );
-		$this->assertEqual('default', $field->node()->getAttribute('value') );
 		$field->value('changed');
 		$this->assertEqual('changed', $field->value() );
-		$this->assertEqual('changed', $field->node()->getAttribute('value') );
 	}
 
 	protected $html = '<form action="./" method="post">
@@ -93,10 +89,8 @@ class SelectFieldTest extends UnitTestCase
 	{
 		$field = $this->field;
 		$this->assertTrue( $field->required() );
-		$this->assertTrue( $field->node()->hasAttribute('required') );
 		$field->required( false );
 		$this->assertFalse( $field->required() );
-		$this->assertFalse( $field->node()->hasAttribute('required') );
 	}
 
 	function test_field_name()
@@ -169,10 +163,8 @@ class TextareaFieldTest extends UnitTestCase
 	{
 		$field = $this->field;
 		$this->assertTrue( $field->required() );
-		$this->assertTrue( $field->node()->hasAttribute('required') );
 		$field->required( false );
 		$this->assertFalse( $field->required() );
-		$this->assertFalse( $field->node()->hasAttribute('required') );
 	}
 
 	function test_field_name()
