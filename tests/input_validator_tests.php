@@ -5,7 +5,7 @@ require_once('../OnceForm.php');
 // tests here
 class InputValidatorTest extends UnitTestCase
 {
-	public function test_defaults_no_request()
+	/*public function test_defaults_no_request()
 	{
 		$onceform = new OnceForm();
 		$onceform->parse_form( '<form action="./" method="post">
@@ -13,7 +13,7 @@ class InputValidatorTest extends UnitTestCase
 		</form>' );
 
 		$node = $onceform->doc->getElementById( 'test' );
-		
+
 		$validator = new InputValidator( $node );
 
 		// Name prop should match the value defined in HTML.
@@ -34,7 +34,7 @@ class InputValidatorTest extends UnitTestCase
 		</form>' );
 
 		$node = $onceform->doc->getElementById( 'test' );
-		
+
 		$validator = new InputValidator( $node );
 
 		// Should be a valid field, because there is a value.
@@ -62,9 +62,9 @@ class InputValidatorTest extends UnitTestCase
 
 		// Should not be valid
 		$this->assertFalse( $validator->validate() );
-		
+
 		// Should be one error here (and only one).
 		$this->assertEqual( 1, count( $validator->errors ) );
 	}
-
+*/
 }
