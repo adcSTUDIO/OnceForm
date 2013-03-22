@@ -67,7 +67,7 @@ class OnceValidator implements iOnceValidator
 
 		$field = $this->field;
 		if ( $field->required() && '' == $field->value() )
-			$this->errors[] = 'Required field *'.$field->name.'* is empty';
+			$this->errors[] = 'Required field *'.$field->name().'* is empty';
 
 		return $this->isValid = empty( $this->errors );
 	}
