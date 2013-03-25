@@ -9,6 +9,6 @@ class AllTests extends TestSuite
 		$this->addFile('field_tests.php');
 		$this->addFile('core_test.php');
 		$this->addFile('data_test.php');
-		$this->addFile('input_validator_tests.php');
+		$this->addFile('validator_tests.php');
 	}
 }

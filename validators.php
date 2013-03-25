@@ -39,36 +39,33 @@ class OnceValidator implements iOnceValidator
 	protected $field;
 	public function field( iOnceField $field = NULL )
 	{
-		if ( !is_null( $field ) ) {
+		if ( !is_null( $field ) )
 			$this->field = $field;
-			$this->validate();
-		}
 		return $this->field;
 	}
 
 	protected $isValid;
-	public function isValid() {
-		return $this->isValid;
+	public function isValid()
+	{
+		// reset the error count when revalidating
+		$this->errors = array();
+
+		$field = $this->field;
+
+		if ( is_null( $field ) ) return;
+
+		if ( $field->required() && '' == $field->value() )
+			$this->errors[] = 'Required field *'.$field->name().'* is empty';
+
+		return empty( $this->errors );
 	}
 
-	protected $errors;
+	protected $errors = array();
 	public function errors() {
 		return $this->errors;
 	}
 
 	public function __construct( iOnceField $field = NULL ) {
 		$this->field( $field );
-	}
-
-	protected function validate()
-	{
-		// reset the error count when revalidating
-		$this->errors = array();
-
-		$field = $this->field;
-		if ( $field->required() && '' == $field->value() )
-			$this->errors[] = 'Required field *'.$field->name().'* is empty';
-
-		return $this->isValid = empty( $this->errors );
 	}
 }
