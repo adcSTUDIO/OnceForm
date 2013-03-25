@@ -109,8 +109,9 @@ class OnceForm
 	 * HTML5 to the user. This function's output will be captured to an
 	 * output buffer.
 	 */
-	protected function capture_form( $func )
+	public function capture_form( $func )
 	{
+		$this->form_func = $func;
 		ob_start();
 		call_user_func( $func );
 		$this->form_html = ob_get_clean();

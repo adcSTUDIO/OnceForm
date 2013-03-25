@@ -30,14 +30,16 @@ class CoreTest extends UnitTestCase
 		$this->assertEqual( $this->form_html, $onceform->__toString() );
 	}
 
-	/*function test_add_form_func()
+	function test_capture_form()
 	{
 		$onceform = new OnceForm();
-		$onceform->add_form_func( 'the_form' );
+		$onceform->form_func = 'the_form';
+		$onceform->init();
 
 		// The onceform should spit out what it got.
+		$this->assertEqual( 'the_form', $onceform->form_func );
 		$this->assertEqual( $this->form_html, $onceform->toString() );
-	}*/
+	}
 
 	function test_add_form_func_through_constructor()
 	{
