@@ -69,3 +69,21 @@ class OnceValidator implements iOnceValidator
 		$this->field( $field );
 	}
 }
+
+class EmailValidator extends OnceValidator
+{
+	static private $email_pattern = "/[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i";
+
+	public function isValid()
+	{
+		$valid = parent::isValid();
+		$field = $this->field;
+
+		if ( $valid ) {
+			if ( !preg_match( self::$email_pattern, $field->value() ) )
+				$this->errors[] = 'not a valid email address';
+		}
+
+		return $this->isValid = empty( $this->errors );
+	}
+}
