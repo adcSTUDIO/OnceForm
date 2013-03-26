@@ -56,4 +56,24 @@ class InputValidatorTest extends UnitTestCase
 		$this->assertFalse( $validator->isValid() );
 		$this->assertEqual( count( $validator->errors() ), 1 );
 	}
+
+	public function test_emailvalidator()
+	{
+		$onceform = new OnceForm();
+		$onceform->form_html = '<form action="./" method="post">
+			<input type="email" name="test" id="test" required>
+		</form>';
+		$onceform->init();
+
+		$field = $onceform->fields['test'];
+		$validator = $field->validator();
+
+		$this->assertFalse( $validator->isValid() );
+
+		$field->value('test');
+		$this->assertFalse( $validator->isValid() );
+
+		$field->value('test@test.com');
+		$this->assertTrue( $validator->isValid() );
+	}
 }
