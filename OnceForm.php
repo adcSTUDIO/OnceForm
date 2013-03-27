@@ -220,7 +220,8 @@ class OnceForm
 		$data = array();
 
 		foreach( $this->fields as $field ) {
-			$data[ $field->name() ] = $field->default_value();
+			if ( $field->field_type()->enumerable )
+				$data[ $field->name() ] = $field->default_value();
 		}
 
 		return $data;
@@ -235,7 +236,8 @@ class OnceForm
 		$names = array();
 
 		foreach( $this->fields as $field ) {
-			$names[] = $field->name();
+			if ( $field->field_type()->enumerable )
+				$names[] = $field->name();
 		}
 
 		return $names;
