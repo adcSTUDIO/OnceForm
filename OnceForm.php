@@ -5,7 +5,7 @@ require_once 'OnceFields.php';
 /*
 The OnceForm - Write once HTML5 forms processing for PHP.
 
-Copyright (C) 2012  adcSTUDIO LLC
+Copyright (C) 2012-2013  adcSTUDIO LLC
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
