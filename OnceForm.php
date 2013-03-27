@@ -304,6 +304,7 @@ class OnceForm
 
 }
 OnceForm::addFieldType( new SubFieldType('input', 'text', 'InputField') );
+OnceForm::addFieldType( new SubFieldType('input', 'password', 'InputField') );
 OnceForm::addFieldType( new SubFieldType('input', 'email', 'InputField', 'EmailValidator') );
 //OnceForm::addFieldType( new FieldType('input', 'number', 'NumberField') );
 OnceForm::addFieldType( new FieldType('select', 'SelectField') );
