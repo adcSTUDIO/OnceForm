@@ -243,10 +243,6 @@ class OnceForm
 		return $names;
 	}
 
-	public function add_validator( $name, $validator ) {
-		$this->validators[ $name ] = $validator;
-	}
-
 	public function set_required( $name, $required = true ) {
 		$this->fields[ $name ]->required( $required );
 	}
