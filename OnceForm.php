@@ -291,6 +291,14 @@ class OnceForm
 		return $valid;
 	}
 
+	public function get_validation_errors()
+	{
+		$errors = array();
+		foreach( $this->validators as $validator )
+			$errors += $validator->errors();
+		return $errors;
+	}
+
 	public function set_user_validator( /* callable */ $func )
 	{
 		$this->user_validator = $func;
