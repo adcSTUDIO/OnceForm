@@ -185,8 +185,13 @@ class OnceForm
 	/**
 	 * Starts with the form's default values, and mixes in the $data.
 	 * In this way, the data is "polyfilled" so you don't have to worry
-	 * about doing isset on every key.
-	 * @param array $data A reference to the array of request data.
+	 * about doing isset on every key. This method will set the field
+	 * values of all fields from request data, but only the keys and
+	 * values of enumerable fields are retained in the data property.
+	 * @param array $data An array of complete request data (even
+	 *                    non-enumerable fields).
+	 * @return array An associateive array of request data mixed
+	 *               mixed with field data (enumerable fields only).
 	 */
 	public function set_data( array $data )
 	{
@@ -194,21 +199,25 @@ class OnceForm
 		$default_data = $this->get_default_data();
 
 		// filters out any fields that aren't in the onceform, or
-		// are not enumerable (:TODO:).
+		// are not enumerable (because default_data doesn't contain
+		// keys from fields that are not enumerable).
+		$filtered_data = array();
 		foreach( $data as $key => $value ) {
-			if ( !array_key_exists( $key, $default_data ) )
-				unset( $data[$key] );
+			if ( array_key_exists( $key, $default_data ) )
+				$filtered_data[ $key ] = $data[ $key ];
 		}
 
-		// Mix the request data with the default data, and kill extra keys.
-		$data = array_merge( $default_data, $data );
-
 		// set the fields to the new data
+		// :NOTE: This will check and set all the data, even fields
+		// marked as not enumerable.
+		// First, mix all the data, full request with defaults.
+		$data = array_merge( $default_data, $data );
 		foreach( $this->fields as $field ) {
 			$field->value( $data[ $field->name() ] );
 		}
 
-		return $this->data = $data;
+		// Mix the filtered request data with the default data.
+		return $this->data = array_merge( $default_data, $filtered_data );
 	}
 
 	/**
