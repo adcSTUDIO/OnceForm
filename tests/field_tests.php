@@ -19,8 +19,6 @@ class InputFieldTest extends UnitTestCase
 		$node = $this->doc->getElementByID('test_field');
 		$this->field = new InputField( $node );
 	}
-	function make_field( DOMNode $node ) {
-	}
 	function tearDown() {
 		$this->doc = null;
 		$this->field = null;
