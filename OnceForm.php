@@ -34,7 +34,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
  */
 class OnceForm
 {
-	public $isRequest = false;
 	public $isValid = false;
 	public $validators = array();
 	public $data = array();
@@ -95,11 +94,14 @@ class OnceForm
 		// get the request data
 		$data = $this->get_request_data();
 
-		// verify, and set this new data
-		$this->set_data( $data );
-
-		if ( $this->isRequest )
+		if ( $this->is_request() ) {
+			// verify, and set this new data
+			$this->set_data( $data );
 			$this->isValid = $this->validate();
+		}
+		else {
+			$this->data = $this->get_default_data();
+		}
 	}
 
 	/**
@@ -175,15 +177,16 @@ class OnceForm
 			// the default `method` if none specified is GET
 			$data = $_GET;
 
-		// :TODO: This is strangly placed. Find a better home.
-		if ( !empty( $data ) )
-			$this->isRequest = true;
-
 		return $data;
 	}
 
+	public function is_request()
+	{
+		return !$this->get_request_data();
+	}
+
 	/**
-	 * Starts with the form's default values, and mixes in the $data.
+	 * Sets all fields with values in $data. Missing fields are set empty.
 	 * In this way, the data is "polyfilled" so you don't have to worry
 	 * about doing isset on every key. This method will set the field
 	 * values of all fields from request data, but only the keys and
@@ -191,45 +194,73 @@ class OnceForm
 	 * @param array $data An array of complete request data (even
 	 *                    non-enumerable fields).
 	 * @return array An associateive array of request data mixed
-	 *               mixed with field data (enumerable fields only).
+	 *               with field data (enumerable fields only).
 	 */
 	public function set_data( array $data )
 	{
-		// First get the default data.
-		$default_data = $this->get_default_data();
+		// First get the default data (including non-enumerable fields).
+		$default_data = $this->get_field_names( true );
 
-		// filters out any fields that aren't in the onceform, or
-		// are not enumerable (because default_data doesn't contain
-		// keys from fields that are not enumerable).
+		$this->data = array();
+		foreach( $default_data as $name )
+		{
+			// discard extraneous data
+			if ( !array_key_exists( $name, $default_data ) ) continue;
+
+			// get the field for this data
+			$field = $this->fields[ $name ];
+
+			// also make sure any keys not present in $data are set to empty.
+			$value = ( isset( $data[ $name ] ) ) ? $data[ $name ]: '';
+
+			// set the field value, even when not enumerable (hidden)
+			$field->value( $value );
+
+			// if the field is not enumerable (hidden) don't set data
+			if ( $field->field_type()->enumerable ) continue;
+
+			$this->data[ $name ] = $value;
+		}
+
+		return $this->data;
+	}
+
+	/**
+	* Starts with the form's default values, and mixes in the $data.
+	* In this way, the data is "polyfilled" so you don't have to worry
+	* about doing isset on every key.
+	* :NOTE: This does not set the data property, only returns
+	* @param array $data An array of complete request data (even
+	* non-enumerable fields).
+	* @return array An associateive array of request data mixed
+	* mixed with field data (enumerable fields only).
+	*/
+	public function mix_data_with_default( array $data, $include_hidden = false )
+	{
+		// First get the default data.
+		$default_data = $this->get_default_data( $include_hidden );
+
+		// Filters out any fields that aren't in the onceform.
 		$filtered_data = array();
 		foreach( $data as $key => $value ) {
 			if ( array_key_exists( $key, $default_data ) )
 				$filtered_data[ $key ] = $data[ $key ];
 		}
 
-		// set the fields to the new data
-		// :NOTE: This will check and set all the data, even fields
-		// marked as not enumerable.
-		// First, mix all the data, full request with defaults.
-		$data = array_merge( $default_data, $data );
-		foreach( $this->fields as $field ) {
-			$field->value( $data[ $field->name() ] );
-		}
-
 		// Mix the filtered request data with the default data.
-		return $this->data = array_merge( $default_data, $filtered_data );
+		return array_merge( $default_data, $filtered_data );
 	}
 
 	/**
 	 * Gets the default values (specified in the HTML) of the OnceForm.
 	 * @return  array The default data.
 	 */
-	public function get_default_data()
+	public function get_default_data( $include_hidden = false )
 	{
 		$data = array();
 
 		foreach( $this->fields as $field ) {
-			if ( $field->field_type()->enumerable )
+			if ( $field->field_type()->enumerable || $include_hidden )
 				$data[ $field->name() ] = $field->default_value();
 		}
 
@@ -237,15 +268,17 @@ class OnceForm
 	}
 
 	/**
-	 * Gets the names of the fields in an array.
+	 * Gets the names of the enumerable fields in an array.
+	 * NOTE: Names are in the original array syntax, not nested.
+	 * (So, "name[one][two]" etc.)
 	 * @return array The names of the fields.
 	 */
-	public function get_field_names()
+	public function get_field_names( $include_hidden = false )
 	{
 		$names = array();
 
 		foreach( $this->fields as $field ) {
-			if ( $field->field_type()->enumerable )
+			if ( $field->field_type()->enumerable || $include_hidden )
 				$names[] = $field->name();
 		}
 
@@ -283,7 +316,7 @@ class OnceForm
 				'isValid' => false
 			);
 
-			if ( empty( $errors ) )
+			if ( !$errors )
 				$validator->isValid = true;
 			else
 				$valid = false;
