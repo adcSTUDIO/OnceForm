@@ -92,14 +92,13 @@ class OnceForm
 		$this->extract_fields();
 
 		// get the request data
-		$data = $this->get_request_data();
-
-		if ( $this->is_request() ) {
+		if ( $data = $this->get_request_data() ) {
 			// verify, and set this new data
 			$this->set_data( $data );
 			$this->isValid = $this->validate();
 		}
 		else {
+			// use the default data if not a request
 			$this->data = $this->get_default_data();
 		}
 	}
@@ -182,7 +181,7 @@ class OnceForm
 
 	public function is_request()
 	{
-		return !$this->get_request_data();
+		return $this->get_request_data();
 	}
 
 	/**
@@ -191,33 +190,34 @@ class OnceForm
 	 * about doing isset on every key. This method will set the field
 	 * values of all fields from request data, but only the keys and
 	 * values of enumerable fields are retained in the data property.
+	 * When loading and setting stored form data, you may wish to avoid
+	 * setting the hidden (unemumerable) form fields.
 	 * @param array $data An array of complete request data (even
 	 *                    non-enumerable fields).
+	 * @param bool $include_hidden Whether or not to also set enumerable
+	 *                             fields. default: true
 	 * @return array An associateive array of request data mixed
 	 *               with field data (enumerable fields only).
 	 */
-	public function set_data( array $data )
+	public function set_data( array $data, $include_hidden = true )
 	{
-		// First get the default data (including non-enumerable fields).
-		$default_data = $this->get_field_names( true );
+		// First get the field names (filtering enumerable fields).
+		$field_names = $this->get_field_names( $include_hidden );
 
 		$this->data = array();
-		foreach( $default_data as $name )
-		{
-			// discard extraneous data
-			if ( !array_key_exists( $name, $default_data ) ) continue;
+		foreach( $field_names as $name ) {
 
 			// get the field for this data
 			$field = $this->fields[ $name ];
 
-			// also make sure any keys not present in $data are set to empty.
+			// make sure any keys not present in $data are set to empty.
 			$value = ( isset( $data[ $name ] ) ) ? $data[ $name ]: '';
 
 			// set the field value, even when not enumerable (hidden)
 			$field->value( $value );
 
-			// if the field is not enumerable (hidden) don't set data
-			if ( $field->field_type()->enumerable ) continue;
+			// if the field is not enumerable (hidden) don't set in $data
+			if ( !$field->field_type()->enumerable ) continue;
 
 			$this->data[ $name ] = $value;
 		}

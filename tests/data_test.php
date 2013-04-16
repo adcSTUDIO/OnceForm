@@ -21,6 +21,12 @@ class DataTest extends UnitTestCase
 		$this->assertEqual( $data['test'], 'start value' );
 	}
 
+	function test_data_defaults_data_prop()
+	{
+		$onceform = new OnceForm($this->form_html);
+		$this->assertEqual( array('test'=>'start value'), $onceform->data );
+	}
+
 	function test_data_resolve_request()
 	{
 		$onceform = new OnceForm();
@@ -35,4 +41,39 @@ class DataTest extends UnitTestCase
 		$this->assertEqual( $onceform->data['test'], 'changed value' );
 	}
 
+	function test_incomplete_request_data()
+	{
+		$onceform = new OnceForm('small_form');
+
+		$this->assertIdentical( array( 'one'=>'1', 'two'=>'2', 'three'=>'3'),
+								 $onceform->data );
+
+		$onceform->set_data( array( 'one'=>'1','two'=>'2' ) );
+
+		$this->assertIdentical(array( 'one'=>'1', 'two'=>'2', 'three'=>''),
+								 $onceform->data );
+	}
+
+	function test_is_request()
+	{
+		$onceform = new OnceForm('small_form');
+
+		$this->assertFalse( $onceform->is_request() );
+
+		$old_post = $_POST;
+
+		$_POST = array('one'=>'1', 'two'=>'2', 'three'=>'3');
+		$this->assertTrue( $onceform->is_request() );
+
+		$_POST = $old_post;
+	}
+
 }
+?>
+<?php function small_form() { ?>
+<form action="./" method="post">
+<input type="text" name="one" value="1">
+<input type="text" name="two" value="2">
+<input type="text" name="three" value="3">
+</form>
+<?php } ?>
