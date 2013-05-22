@@ -227,6 +227,14 @@ class OnceForm
 			// make sure any keys not present in $data are set to empty.
 			$value = ( isset( $data[ $name ] ) ) ? $data[ $name ]: '';
 
+			// :HACK: deal with the specific case of multiple select box
+			if ('select' == $field->field_type()->tag_name &&
+			     strstr( $name, '[]') &&
+			     $field->multiple() ) {
+				$altn = substr( $name, -2 );
+				$value = ( isset( $data[ $altn ] ) ) ? $data[ $altn ]: '';
+			}
+
 			// set the field value, even when not enumerable (hidden)
 			$field->value( $value );
 
