@@ -85,12 +85,21 @@ class OnceForm
 	 */
 	public function init()
 	{
+		$this->init_form();
+		$this->init_request();
+	}
+
+	protected function init_form()
+	{
 		if ( is_callable( $this->form_func ) )
 			$this->capture_form( $this->form_func );
 
 		$this->parse_form();
 		$this->extract_fields();
+	}
 
+	protected function init_request()
+	{
 		// get the request data
 		if ( $data = $this->get_request_data() ) {
 			// verify, and set this new data
