@@ -229,9 +229,8 @@ class OnceForm
 
 			// :HACK: deal with the specific case of multiple select box
 			if ('select' == $field->field_type()->tag_name &&
-			     strstr( $name, '[]') &&
-			     $field->multiple() ) {
-				$altn = substr( $name, -2 );
+			     strstr( $name, '[]') && $field->multiple() ) {
+				$altn = substr( $name, 0, -2 );
 				$value = ( isset( $data[ $altn ] ) ) ? $data[ $altn ]: '';
 			}
 
