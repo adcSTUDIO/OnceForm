@@ -186,12 +186,15 @@ class SelectField extends OnceField
 	{
 		$options = $this->node->getElementsByTagName('option');
 
-		// :TODO: add support for array $value arg
 		if ( !is_null( $value ) ) {
 			foreach( $options as $option ) {
 				if ( $option->hasAttribute('selected') )
 					$option->removeAttribute('selected');
-				if ( $this->get_option_value( $option ) == $value )
+				if ( is_array($value) ) {
+					if ( in_array( $this->get_option_value( $option ), $value ) )
+						$option->setAttribute('selected', 'selected');
+				}
+				elseif ( $this->get_option_value( $option ) == $value )
 					$option->setAttribute('selected', 'selected');
 			}
 		}
