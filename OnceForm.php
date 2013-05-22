@@ -193,6 +193,11 @@ class OnceForm
 		return $this->get_request_data();
 	}
 
+	public function is_valid()
+	{
+		return $this->isValid;
+	}
+
 	/**
 	 * Sets all fields with values in $data. Missing fields are set empty.
 	 * In this way, the data is "polyfilled" so you don't have to worry
