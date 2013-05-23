@@ -23,7 +23,7 @@ require_once '../OnceForm.php';
 
 $form = new OnceForm('my_form');
 
-if ( $form->isRequest )
+if ( $form->is_request() )
 {
 	if ( $form->isValid )
 	{
@@ -96,7 +96,7 @@ if ( $form->isRequest )
 </table>
 
 <pre>
-isRequest: <?php var_dump( $form->isRequest ) ?>
+isRequest: <?php var_dump( $form->is_request() ) ?>
 isValid: <?php var_dump( $form->isValid ) ?>
 
 <?php print_r( $form->validators ) ?>

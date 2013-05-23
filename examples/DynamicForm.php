@@ -61,7 +61,7 @@ $html .= '</form>';
 $form1->parse_form( $html );
 $form1->check_request();
 
-if ( $form1->isRequest )
+if ( $form1->is_request() )
 {
 	$form1->validate();
 	
@@ -132,7 +132,7 @@ submit invalid data to the server to demo the OnceForm.)</p></td>
 </table>
 
 <pre>
-isRequest: <?php var_dump( $form1->isRequest ) ?>
+isRequest: <?php var_dump( $form1->is_request() ) ?>
 isValid: <?php var_dump( $form1->isValid ) ?>
 
 <?php print_r( $form1->validators ) ?>
