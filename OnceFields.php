@@ -198,7 +198,8 @@ class SelectField extends OnceField
 			foreach( $options as $option ) {
 				if ( $option->hasAttribute('selected') )
 					$option->removeAttribute('selected');
-				$option->setAttribute('selected', 'selected');
+				if ( $this->get_option_value( $option ) == $value )
+					$option->setAttribute('selected', 'selected');
 			}
 		}
 
