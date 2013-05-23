@@ -106,6 +106,13 @@ class SelectFieldTest extends UnitTestCase
 		$this->assertEqual('blue', $field->value() );
 	}
 
+	function test_multiple_value()
+	{
+		$field = $this->field;
+		$field->value( array('blue','Yellow') );
+		$this->assertEqual( array('blue','Yellow'), $field->value() );
+	}
+
 	function test_field_multiple()
 	{
 		$node = $this->doc->getElementByID('multiple_field');
