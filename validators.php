@@ -79,7 +79,7 @@ class EmailValidator extends OnceValidator
 		$valid = parent::isValid();
 		$field = $this->field;
 
-		if ( $valid ) {
+		if ( $field->value() ) {
 			if ( !preg_match( self::$email_pattern, $field->value() ) )
 				$this->errors[] = 'not a valid email address';
 		}

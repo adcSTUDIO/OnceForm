@@ -75,5 +75,13 @@ class InputValidatorTest extends UnitTestCase
 
 		$field->value('test@test.com');
 		$this->assertTrue( $validator->isValid() );
+
+		$field->value('');
+		$this->assertFalse( $validator->isValid(),
+			"Empty value with required should be invalid." );
+
+		$field->required(false);
+		$this->assertTrue( $validator->isValid(),
+			"Empty value without required should be valid." );
 	}
 }
