@@ -331,15 +331,9 @@ class OnceForm
 		if ( $this->user_validator ) {
 			$errors = call_user_func( $this->user_validator, $data, $this );
 
-			$validator = (object)array(
-				'errors' => $errors,
-				'name' => 'user validator',
-				'isValid' => false
-			);
+			$validator = new UserValidator( $errors );
 
-			if ( !$errors )
-				$validator->isValid = true;
-			else
+			if ( !$validator->isValid() )
 				$valid = false;
 
 			$this->validators[] = $validator;

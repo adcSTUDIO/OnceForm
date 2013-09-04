@@ -87,3 +87,19 @@ class EmailValidator extends OnceValidator
 		return $this->isValid = empty( $this->errors );
 	}
 }
+
+class UserValidator extends OnceValidator
+{
+	public function isValid() {
+		return $this->isValid;
+	}
+
+	public function errors() {
+		return $this->errors;
+	}
+
+	public function __construct( array $errors ) {
+		$this->$errors = $errors;
+		$this->isValid = (!$errors);
+	}
+}
