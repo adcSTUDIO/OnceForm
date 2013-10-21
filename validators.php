@@ -99,7 +99,7 @@ class UserValidator extends OnceValidator
 	}
 
 	public function __construct( array $errors ) {
-		$this->$errors = $errors;
+		$this->errors = $errors;
 		$this->isValid = (!$errors);
 	}
 }
