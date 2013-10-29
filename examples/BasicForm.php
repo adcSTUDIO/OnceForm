@@ -81,6 +81,17 @@ if ( $form->is_request() )
 	</select>
 </p>
 <p>
+	<label for="multi">Select some things</label>
+	<select name="multi[]" id="multi" multiple>
+		<optgroup>
+			<option value="1">Once</option>
+			<option>Two</option>
+			<option value="3" selected>Three</option>
+			<option value="4">Four</option>
+		</optgroup>
+	</select>
+</p>
+<p>
 	<label for="textTest">Enter some text</label><br>
 	<textarea id="textTest" name="textTest" required></textarea>
 </p>
@@ -98,6 +109,7 @@ if ( $form->is_request() )
 <pre>
 isRequest: <?php var_dump( $form->is_request() ) ?>
 isValid: <?php var_dump( $form->isValid ) ?>
+data: <?php var_dump( $form->data ) ?>
 
 <?php print_r( $form->validators ) ?>
 
