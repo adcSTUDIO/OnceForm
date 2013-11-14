@@ -49,8 +49,25 @@ class OnceForm
 
 	protected $user_validator;
 
-	public function __toString() {
-		return $this->doc->saveHTML( $this->form );
+	public function __toString()
+	{
+		// different versions of php handle this differently
+		// see: http://us2.php.net/manual/en/domdocument.savehtml.php
+		if ( version_compare(PHP_VERSION, '5.3.6', '>=')) {
+			// for current versions, we need to pass a node, to get the fragment HTML
+			return $this->doc->saveHTML( $this->form );
+		}
+		elseif ( version_compare(PHP_VERSION, '5.2.6', '>=')) {
+			// for php 5.2.6 through 5.3.5 we need to trim this manually
+			return preg_replace('/^<!DOCTYPE.+?>/', '',
+				str_replace( array('<html>', '</html>', '<body>', '</body>'), array('', '', '', ''),
+					preg_replace('/<head\b[^>]*>(.*?)<\/head>/','',$this->doc->saveHTML())
+				)
+			);
+		}
+		else
+			// older than 5.2.6 only saves the fragment you pass it
+			return $this->doc->saveHTML();
 	}
 
 	public function toString() {

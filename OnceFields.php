@@ -82,7 +82,7 @@ abstract class OnceField implements iOnceField
 		return $this->default_value;
 	}
 
-	abstract public function value( $value = NULL );
+	//abstract public function value( $value = NULL );
 
 	public function name() {
 		return $this->node->getAttribute('name');
